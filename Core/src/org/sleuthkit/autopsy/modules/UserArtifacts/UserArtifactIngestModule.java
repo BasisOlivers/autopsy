@@ -19,6 +19,7 @@
 package org.sleuthkit.autopsy.modules.UserArtifacts;
 
 import com.sun.media.jfxmedia.logging.Logger;
+import java.util.ArrayList;
 import java.util.List;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.casemodule.services.Blackboard.BlackboardException;
@@ -33,6 +34,7 @@ import org.sleuthkit.datamodel.BlackboardArtifact;
 import org.sleuthkit.datamodel.BlackboardAttribute;
 import org.sleuthkit.datamodel.BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE;
 import org.sleuthkit.datamodel.Content;
+import org.sleuthkit.datamodel.SleuthkitCase;
 import org.sleuthkit.datamodel.TskCoreException;
 
 /**
@@ -49,25 +51,33 @@ public class UserArtifactIngestModule implements DataSourceIngestModule {
             FileManager manager = Case.getCurrentCase().getServices().getFileManager();
             List<AbstractFile> file1 = manager.findFiles("Sunset.jpg"); //NON-NLS
             List<AbstractFile> file2 = manager.findFiles("Winter.jpg"); //NON-NLS
-            BlackboardArtifact art1;
+            BlackboardArtifact art1 = null;
             BlackboardArtifact art2;
-            if (!file1.isEmpty()) {
+            SleuthkitCase sk = Case.getCurrentCase().getSleuthkitCase();
+            for(int i = BlackboardArtifact.ARTIFACT_TYPE.TSK_METADATA_EXIF.getTypeID(); i < BlackboardArtifact.ARTIFACT_TYPE.values().length; i++) {
+                ArrayList<BlackboardArtifact> arts = sk.getBlackboardArtifacts(i);
+                if(arts.size() > 0) {
+                    art1 = arts.get(0);
+                    i = BlackboardArtifact.ARTIFACT_TYPE.values().length;
+                }
+            }
+            if (!file1.isEmpty() && null == art1) {
                 art1 = file1.get(0).newArtifact(type1.getTypeID());
-            } else {
+            } else if (art1 == null) {
                 art1 = dataSource.newArtifact(type1.getTypeID());
             }
-            if (!file2.isEmpty()) {
+            /*if (!file2.isEmpty()) {
                 art2 = file2.get(0).newArtifact(type2.getTypeID());
             } else {
                 art2 = dataSource.newArtifact(type2.getTypeID());
-            }
-            BlackboardAttribute.Type attributeType = Case.getCurrentCase().getServices().getBlackboard().addAttributeType("Test", TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "2");
-            BlackboardAttribute.Type attributeType2 = Case.getCurrentCase().getServices().getBlackboard().addAttributeType("Test2", TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "3");
+            }*/
+            BlackboardAttribute.Type attributeType = Case.getCurrentCase().getServices().getBlackboard().addAttributeType("Test33", TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "233");
+            //BlackboardAttribute.Type attributeType2 = Case.getCurrentCase().getServices().getBlackboard().addAttributeType("Test2", TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "3");
             art1.addAttribute(new BlackboardAttribute(attributeType,
                     UserArtifactIngestModuleFactory.getModuleName(), "tester1"));
             progressBar.progress(1);
-            art2.addAttribute(new BlackboardAttribute(attributeType2,
-                    UserArtifactIngestModuleFactory.getModuleName(), "abatecombo"));
+            /*art2.addAttribute(new BlackboardAttribute(attributeType2,
+                    UserArtifactIngestModuleFactory.getModuleName(), "abatecombo"));*/
             progressBar.progress(1);
             IngestServices.getInstance().postMessage(IngestMessage.createDataMessage(
                     "name", // NON-NLS

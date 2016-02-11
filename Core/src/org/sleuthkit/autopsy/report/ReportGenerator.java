@@ -2121,6 +2121,12 @@ class ReportGenerator {
             }
             columns.add(new SourceFileColumn(NbBundle.getMessage(this.getClass(), "ReportGenerator.artTableColHdr.srcFile")));
         }
+        for (Column column : columns) {
+            column.removeType(types);
+        }
+        for (BlackboardAttribute.Type type : types) {
+            columns.add(new AttributeColumn(type.getDisplayName(), type));
+        }
         columns.add(
                 new TaggedResultsColumn(NbBundle.getMessage(this.getClass(), "ReportGenerator.artTableColHdr.tags")));
 
@@ -2285,6 +2291,7 @@ class ReportGenerator {
          * Get the values for each row in the table report.
          *
          * the value types of custom artifacts
+         *
          * @return A list of string representing the data for this artifact.
          */
         public List<String> getRow() {
@@ -2352,8 +2359,8 @@ class ReportGenerator {
                     orderedRowData.add(cellData);
                 }
                 /*
-                Short circuits so that the tag list is not added twice (the tag column is represented in the column list)
-                */
+                 Short circuits so that the tag list is not added twice (the tag column is represented in the column list)
+                 */
                 return orderedRowData;
             }
             orderedRowData.add(makeCommaSeparatedList(getTags()));
@@ -2404,6 +2411,8 @@ class ReportGenerator {
         String getColumnHeader();
 
         String getCellData(ArtifactData artData);
+
+        void removeType(Set<BlackboardAttribute.Type> types);
     }
 
     private class AttributeColumn implements Column {
@@ -2437,6 +2446,11 @@ class ReportGenerator {
             }
             return "";
         }
+
+        @Override
+        public void removeType(Set<Type> types) {
+            types.remove(this.attributeType);
+        }
     }
 
     private class SourceFileColumn implements Column {
@@ -2460,6 +2474,10 @@ class ReportGenerator {
              }
              return "";*/
         }
+
+        @Override
+        public void removeType(Set<Type> types) {
+        }
     }
 
     private class TaggedResultsColumn implements Column {
@@ -2479,6 +2497,10 @@ class ReportGenerator {
         public String getCellData(ArtifactData artData) {
             return makeCommaSeparatedList(artData.getTags());
         }
+
+        @Override
+        public void removeType(Set<Type> types) {
+        }
     }
 
     private class UnspecifiedColumn implements Column {
@@ -2497,6 +2519,10 @@ class ReportGenerator {
         @Override
         public String getCellData(ArtifactData artData) {
             throw new UnsupportedOperationException("Cannot get cell data of unspecified column");
+        }
+
+        @Override
+        public void removeType(Set<Type> types) {
         }
     }
 }
