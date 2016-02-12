@@ -205,31 +205,41 @@ class PstParser {
             String filename = "";
             try {
                 PSTAttachment attach = msg.getAttachment(x);
-                long size = attach.getAttachSize();
-                long freeSpace = services.getFreeDiskSpace();
-                if ((freeSpace != IngestMonitor.DISK_FREE_SPACE_UNKNOWN) && (size >= freeSpace)) {
-                    continue;
-                }
-                // both long and short filenames can be used for attachments
-                filename = attach.getLongFilename();
-                if (filename.isEmpty()) {
-                    filename = attach.getFilename();
-                }
-                String uniqueFilename = fileID + "-" + msg.getDescriptorNodeId() + "-" + attach.getContentId() + "-" + filename;
-                String outPath = outputDirPath + uniqueFilename;
-                saveAttachmentToDisk(attach, outPath);
+                if (attach.getAttachMethod() == 5) {
+                    try {
+                        PSTMessage message = attach.getEmbeddedPSTMessage();
+                        this.extractEmailMessage(message, email.getLocalPath(), fileID);
+                    } catch (PSTException | IOException ex) {
+                        logger.log(Level.WARNING, "Failed to extract embeded email");
+                    }
 
-                EmailMessage.Attachment attachment = new EmailMessage.Attachment();
+                } else {
+                    long size = attach.getAttachSize();
+                    long freeSpace = services.getFreeDiskSpace();
+                    if ((freeSpace != IngestMonitor.DISK_FREE_SPACE_UNKNOWN) && (size >= freeSpace)) {
+                        continue;
+                    }
+                    // both long and short filenames can be used for attachments
+                    filename = attach.getLongFilename();
+                    if (filename.isEmpty()) {
+                        filename = attach.getFilename();
+                    }
+                    String uniqueFilename = fileID + "-" + msg.getDescriptorNodeId() + "-" + attach.getContentId() + "-" + filename;
+                    String outPath = outputDirPath + uniqueFilename;
+                    saveAttachmentToDisk(attach, outPath);
 
-                long crTime = attach.getCreationTime() != null ? attach.getCreationTime().getTime()/1000 : 0;
-                long mTime = attach.getModificationTime() != null ? attach.getModificationTime().getTime()/1000 : 0;
-                String relPath = getRelModuleOutputPath() + File.separator + uniqueFilename;
-                attachment.setName(filename);
-                attachment.setCrTime(crTime);
-                attachment.setmTime(mTime);
-                attachment.setLocalPath(relPath);
-                attachment.setSize(attach.getFilesize());
-                email.addAttachment(attachment);
+                    EmailMessage.Attachment attachment = new EmailMessage.Attachment();
+
+                    long crTime = attach.getCreationTime() != null ? attach.getCreationTime().getTime() / 1000 : 0;
+                    long mTime = attach.getModificationTime() != null ? attach.getModificationTime().getTime() / 1000 : 0;
+                    String relPath = getRelModuleOutputPath() + File.separator + uniqueFilename;
+                    attachment.setName(filename);
+                    attachment.setCrTime(crTime);
+                    attachment.setmTime(mTime);
+                    attachment.setLocalPath(relPath);
+                    attachment.setSize(attach.getFilesize());
+                    email.addAttachment(attachment);
+                }
             } catch (PSTException | IOException ex) {
                 addErrorMessage(
                         NbBundle.getMessage(this.getClass(), "PstParser.extractAttch.errMsg.failedToExtractToDisk",
