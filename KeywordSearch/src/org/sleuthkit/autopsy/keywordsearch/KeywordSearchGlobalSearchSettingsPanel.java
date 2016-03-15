@@ -42,13 +42,13 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
     }
 
     private void activateWidgets() {
-        skipNSRLCheckBox.setSelected(KeywordSearchSettings.getSkipKnown());
-        showSnippetsCB.setSelected(KeywordSearchSettings.getShowSnippets());
+        skipNSRLCheckBox.setSelected(KeywordSearchGlobalSettings.getSkipKnown());
+        showSnippetsCB.setSelected(KeywordSearchGlobalSettings.getShowSnippets());
         boolean enable = !IngestManager.getInstance().isIngestRunning();
         skipNSRLCheckBox.setEnabled(enable);
         setTimeSettingEnabled(enable);
 
-        final UpdateFrequency curFreq = KeywordSearchSettings.getUpdateFrequency();
+        final UpdateFrequency curFreq = KeywordSearchGlobalSettings.getUpdateFrequency();
         switch (curFreq) {
             case FAST:
                 timeRadioButton1.setSelected(true);
@@ -244,9 +244,9 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
 
     @Override
     public void store() {
-        KeywordSearchSettings.setSkipKnown(skipNSRLCheckBox.isSelected());
-        KeywordSearchSettings.setUpdateFrequency(getSelectedTimeValue());
-        KeywordSearchSettings.setShowSnippets(showSnippetsCB.isSelected());
+        KeywordSearchGlobalSettings.setSkipKnown(skipNSRLCheckBox.isSelected());
+        KeywordSearchGlobalSettings.setUpdateFrequency(getSelectedTimeValue());
+        KeywordSearchGlobalSettings.setShowSnippets(showSnippetsCB.isSelected());
     }
 
     @Override
@@ -286,7 +286,7 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
         timeGroup.add(timeRadioButton4);
         timeGroup.add(timeRadioButton5);
 
-        this.skipNSRLCheckBox.setSelected(KeywordSearchSettings.getSkipKnown());
+        this.skipNSRLCheckBox.setSelected(KeywordSearchGlobalSettings.getSkipKnown());
 
         try {
             filesIndexedValue.setText(Integer.toString(KeywordSearch.getServer().queryNumIndexedFiles()));

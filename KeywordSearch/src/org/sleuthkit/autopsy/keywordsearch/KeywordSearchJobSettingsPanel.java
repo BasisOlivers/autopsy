@@ -85,7 +85,7 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
     }
 
     private void displayLanguages() {
-        List<SCRIPT> scripts = KeywordSearchSettings.getStringExtractScripts();
+        List<SCRIPT> scripts = KeywordSearchGlobalSettings.getStringExtractScripts();
         StringBuilder langs = new StringBuilder();
         langs.append("<html>"); //NON-NLS
         for (int i = 0; i < scripts.size(); i++) {
@@ -101,8 +101,8 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
     }
 
     private void displayEncodings() {
-        String utf8 = KeywordSearchSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF8.toString());
-        String utf16 = KeywordSearchSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF16.toString());
+        String utf8 = KeywordSearchGlobalSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF8.toString());
+        String utf16 = KeywordSearchGlobalSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF16.toString());
         ArrayList<String> encodingsList = new ArrayList<>();
         if (utf8 == null || Boolean.parseBoolean(utf8)) {
             encodingsList.add("UTF8");

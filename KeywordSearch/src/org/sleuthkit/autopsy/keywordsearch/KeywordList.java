@@ -1,7 +1,7 @@
 /*
  * Autopsy Forensic Browser
  * 
- * Copyright 2011-2014 Basis Technology Corp.
+ * Copyright 2011-2016 Basis Technology Corp.
  * Contact: carrier <at> sleuthkit <dot> org
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,12 @@
  */
 package org.sleuthkit.autopsy.keywordsearch;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class KeywordList {
+public class KeywordList implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private Date created;

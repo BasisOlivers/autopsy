@@ -219,12 +219,12 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
 
         //initialize extractors
         stringExtractor = new StringsTextExtractor(this);
-        stringExtractor.setScripts(KeywordSearchSettings.getStringExtractScripts());
-        stringExtractor.setOptions(KeywordSearchSettings.getStringExtractOptions());
+        stringExtractor.setScripts(KeywordSearchGlobalSettings.getStringExtractScripts());
+        stringExtractor.setOptions(KeywordSearchGlobalSettings.getStringExtractOptions());
 
         //log the scripts used for debugging
         final StringBuilder sbScripts = new StringBuilder();
-        for (SCRIPT s : KeywordSearchSettings.getStringExtractScripts()) {
+        for (SCRIPT s : KeywordSearchGlobalSettings.getStringExtractScripts()) {
             sbScripts.append(s.name()).append(" ");
         }
         logger.log(Level.INFO, "Using string extract scripts: {0}", sbScripts.toString()); //NON-NLS
@@ -252,7 +252,7 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
             return ProcessResult.OK;
         }
 
-        if (KeywordSearchSettings.getSkipKnown() && abstractFile.getKnown().equals(FileKnown.KNOWN)) {
+        if (KeywordSearchGlobalSettings.getSkipKnown() && abstractFile.getKnown().equals(FileKnown.KNOWN)) {
             //index meta-data only
             indexer.indexFile(abstractFile, false);
             return ProcessResult.OK;
