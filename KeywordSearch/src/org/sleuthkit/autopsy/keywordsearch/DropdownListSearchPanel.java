@@ -48,7 +48,6 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
 
     private static final Logger logger = Logger.getLogger(DropdownListSearchPanel.class.getName());
     private static DropdownListSearchPanel instance;
-    private XmlKeywordSearchList loader;
     private final KeywordListsTableModel listsTableModel;
     private final KeywordsTableModel keywordsTableModel;
     private ActionListener searchAddListener;
@@ -96,8 +95,6 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
                 column.setCellRenderer(new RightCheckBoxRenderer());
             }
         }
-
-        loader = XmlKeywordSearchList.getCurrent();
         listsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -318,7 +315,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
     private class KeywordListsTableModel extends AbstractTableModel {
         //data
 
-        private XmlKeywordSearchList listsHandle = XmlKeywordSearchList.getCurrent();
+        private GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
         private List<ListTableEntry> listData = new ArrayList<>();
 
         @Override
@@ -408,7 +405,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         }
 
         KeywordList getListAt(int rowIndex) {
-            return listsHandle.getList((String) getValueAt(rowIndex, 1));
+            return settingsManager.getSettings().getList((String) getValueAt(rowIndex, 1));
         }
 
         List<String> getSelectedLists() {
@@ -424,7 +421,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         List<KeywordList> getSelectedListsL() {
             List<KeywordList> ret = new ArrayList<>();
             for (String s : getSelectedLists()) {
-                ret.add(listsHandle.getList(s));
+                ret.add(settingsManager.getSettings().getList(s));
             }
             return ret;
         }
@@ -437,7 +434,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         //resync model from handle, then update table
         void resync() {
             listData.clear();
-            addLists(listsHandle.getListsL());
+            addLists(settingsManager.getSettings().getKeywordLists());
             fireTableDataChanged();
         }
 

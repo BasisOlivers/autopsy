@@ -536,14 +536,14 @@ public final class SearchRunner {
          * Sync-up the updated keywords from the currently used lists in the XML
          */
         private void updateKeywords() {
-            XmlKeywordSearchList loader = XmlKeywordSearchList.getCurrent();
+            GlobalSettingsManager loader = GlobalSettingsManager.getInstance();
 
             keywords.clear();
             keywordToList.clear();
             keywordLists.clear();
 
             for (String name : keywordListNames) {
-                KeywordList list = loader.getList(name);
+                KeywordList list = loader.getSettings().getList(name);
                 keywordLists.add(list);
                 for (Keyword k : list.getKeywords()) {
                     keywords.add(k);

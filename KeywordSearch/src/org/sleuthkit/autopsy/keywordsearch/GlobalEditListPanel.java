@@ -419,7 +419,7 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
 
         //add & reset checkbox
         tableModel.addKeyword(keyword);
-        XmlKeywordSearchList.getCurrent().addList(currentKeywordList);
+        GlobalSettingsManager.getInstance().getSettings().addKeywordList(currentKeywordList);
         chRegex.setSelected(false);
         addWordField.setText("");
 
@@ -430,7 +430,7 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
         if (KeywordSearchUtil.displayConfirmDialog(NbBundle.getMessage(this.getClass(), "KeywordSearchEditListPanel.removeKwMsg"), NbBundle.getMessage(this.getClass(), "KeywordSearchEditListPanel.deleteWordButtonActionPerformed.delConfirmMsg"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN)) {
 
             tableModel.deleteSelected(keywordTable.getSelectedRows());
-            XmlKeywordSearchList.getCurrent().addList(currentKeywordList);
+            GlobalSettingsManager.getInstance().getSettings().addKeywordList(currentKeywordList);
             setButtonStates();
         }
     }//GEN-LAST:event_deleteWordButtonActionPerformed
@@ -492,8 +492,8 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
 
     private void ingestMessagesCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ingestMessagesCheckboxActionPerformed
         currentKeywordList.setIngestMessages(ingestMessagesCheckbox.isSelected());
-        XmlKeywordSearchList updater = XmlKeywordSearchList.getCurrent();
-        updater.addList(currentKeywordList);
+        
+        GlobalSettingsManager.getInstance().getSettings().addKeywordList(currentKeywordList);
     }//GEN-LAST:event_ingestMessagesCheckboxActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel addKeywordPanel;
@@ -528,9 +528,8 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
             int index = listSelectionModel.getMinSelectionIndex();
 
             listSelectionModel.setSelectionInterval(index, index);
-            XmlKeywordSearchList loader = XmlKeywordSearchList.getCurrent();
 
-            currentKeywordList = loader.getListsL(false).get(index);
+            currentKeywordList = GlobalSettingsManager.getInstance().getSettings().getKeywordLists().get(index);
             tableModel.resync();
             setButtonStates();
         } else {

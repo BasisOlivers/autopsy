@@ -21,6 +21,7 @@ package org.sleuthkit.autopsy.keywordsearch;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.coreutils.Logger;
@@ -158,15 +159,15 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
     }// </editor-fold>//GEN-END:initComponents
 
     private void newListButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newListButtonActionPerformed
-        XmlKeywordSearchList writer = XmlKeywordSearchList.getCurrent();
+        KeywordSearchGlobalSettings settings = GlobalSettingsManager.getInstance().getSettings();
         String listName = (String) JOptionPane.showInputDialog(null, NbBundle.getMessage(this.getClass(), "KeywordSearch.newKwListTitle"),
                 NbBundle.getMessage(this.getClass(), "KeywordSearch.newKeywordListMsg"), JOptionPane.PLAIN_MESSAGE, null, null, "");
         if (listName == null || listName.trim().equals("")) {
             return;
         }
         boolean shouldAdd = false;
-        if (writer.listExists(listName)) {
-            if (writer.getList(listName).isLocked()) {
+        if (settings.getList(listName) != null) {
+            if (settings.getList(listName).isLocked()) {
                 boolean replace = KeywordSearchUtil.displayConfirmDialog(
                         NbBundle.getMessage(this.getClass(), "KeywordSearch.newKeywordListMsg"),
                         NbBundle.getMessage(this.getClass(), "KeywordSearchListsManagementPanel.newKeywordListDescription", listName),
@@ -187,7 +188,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             shouldAdd = true;
         }
         if (shouldAdd) {
-            writer.addList(listName, new ArrayList<Keyword>());
+            settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, new ArrayList<Keyword>()));
         }
         tableModel.resync();
 
@@ -241,12 +242,12 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             List<KeywordList> toImport = reader.getListsL();
             List<KeywordList> toImportConfirmed = new ArrayList<KeywordList>();
 
-            final XmlKeywordSearchList writer = XmlKeywordSearchList.getCurrent();
+            final KeywordSearchGlobalSettings settings = GlobalSettingsManager.getInstance().getSettings();
 
             for (KeywordList list : toImport) {
                 //check name collisions
                 listName = list.getName();
-                if (writer.listExists(listName)) {
+                if (settings.getList(listName) != null) {
                     Object[] options = {NbBundle.getMessage(this.getClass(), "KeywordSearch.yesOwMsg"),
                         NbBundle.getMessage(this.getClass(), "KeywordSearch.noSkipMsg"),
                         NbBundle.getMessage(this.getClass(), "KeywordSearch.cancelImportMsg")};
@@ -299,7 +300,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
                 return;
             } else if (KeywordSearchUtil.displayConfirmDialog(NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.title"), NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.body"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN)) {
                 String listName = (String) listsTable.getModel().getValueAt(selected[0], 0);
-                XmlKeywordSearchList.getCurrent().deleteList(listName);
+                GlobalSettingsManager.getInstance().getSettings().deleteList(listName);
             } else {
                 return;
             }

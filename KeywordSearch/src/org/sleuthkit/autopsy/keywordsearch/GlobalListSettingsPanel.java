@@ -45,8 +45,8 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                     String toDelete = editListPanel.getCurrentKeywordList().getName();
                     editListPanel.setCurrentKeywordList(null);
                     editListPanel.setButtonStates();
-                    XmlKeywordSearchList deleter = XmlKeywordSearchList.getCurrent();
-                    deleter.deleteList(toDelete);
+                    GlobalSettingsManager deleter = GlobalSettingsManager.getInstance();
+                    deleter.getSettings().deleteList(toDelete);
                     listsManagementPanel.resync();
                 }
             }
@@ -78,8 +78,8 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                     return;
                 }
 
-                XmlKeywordSearchList writer = XmlKeywordSearchList.getCurrent();
-                if (writer.listExists(listName) && writer.getList(listName).isLocked()) {
+                GlobalSettingsManager writer = GlobalSettingsManager.getInstance();
+                if (writer.getSettings().getList(listName) != null && writer.getSettings().getList(listName).isLocked()) {
                     KeywordSearchUtil.displayDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.noOwDefaultMsg"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN);
                     return;
                 }
@@ -112,7 +112,6 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
 
     @Override
     public void store() {
-        XmlKeywordSearchList.getCurrent().save(false);
         //refresh the list viewer/searcher panel
         DropdownListSearchPanel.getDefault().resync();
     }

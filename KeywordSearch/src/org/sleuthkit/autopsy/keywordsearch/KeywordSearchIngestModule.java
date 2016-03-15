@@ -202,7 +202,7 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
                 }
 
                 // check if this job has any searchable keywords    
-                List<KeywordList> keywordLists = XmlKeywordSearchList.getCurrent().getListsL();
+                List<KeywordList> keywordLists = GlobalSettingsManager.getInstance().getSettings().getKeywordLists();
                 boolean hasKeywordsForSearch = false;
                 for (KeywordList keywordList : keywordLists) {
                     if (settings.keywordListIsEnabled(keywordList.getName()) && !keywordList.getKeywords().isEmpty()) {

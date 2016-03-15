@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.openide.util.Exceptions;
 import org.sleuthkit.autopsy.coreutils.Logger;
 import org.sleuthkit.autopsy.coreutils.PlatformUtil;
 import org.sleuthkit.autopsy.coreutils.XMLUtil;
@@ -87,6 +88,21 @@ final class XmlKeywordSearchList extends KeywordSearchList {
 
     @Override
     public boolean save(boolean isExport) {
+        if (isExport) {
+            try {
+                GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
+                KeywordSearchGlobalSettings settings = settingsManager.getSettings();
+
+                List<KeywordList> lists = new ArrayList<>();
+                for (KeywordList list : theLists.values()) {
+                    lists.add(list);
+                }
+                settings.setKeywordLists(lists);
+                return true;
+            } catch (GlobalSettingsManager.GlobalSettingsManagerException ex) {
+                return false;
+            }
+        }
         boolean success = false;
 
         DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
@@ -147,6 +163,19 @@ final class XmlKeywordSearchList extends KeywordSearchList {
      */
     @Override
     public boolean load() {
+        if (this == XmlKeywordSearchList.getCurrent()) {
+            try {
+                GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
+                KeywordSearchGlobalSettings settings = settingsManager.getSettings();
+                for (KeywordList list : settings.getKeywordLists()) {
+                    theLists.put(list.getName(), list);
+                }
+                return true;
+            } catch (GlobalSettingsManager.GlobalSettingsManagerException ex) {
+                return false;
+            }
+        }
+
         final Document doc = XMLUtil.loadDoc(XmlKeywordSearchList.class, filePath);
         if (doc == null) {
             return false;

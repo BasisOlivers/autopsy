@@ -49,7 +49,7 @@ class KeywordSearchGlobalSettings implements Serializable {
     private List<KeywordList> keywordLists;
     private static final long serialVersionUID = 1L;
 
-    public KeywordSearchGlobalSettings(boolean showSnippets, boolean skipKnown, UpdateFrequency UpdateFreq, List<SCRIPT> stringExtractScripts, Map<String, String> stringExtractOptions, List<KeywordList> keywordLists) {
+    KeywordSearchGlobalSettings(boolean showSnippets, boolean skipKnown, UpdateFrequency UpdateFreq, List<SCRIPT> stringExtractScripts, Map<String, String> stringExtractOptions, List<KeywordList> keywordLists) {
         this.showSnippets = showSnippets;
         this.skipKnown = skipKnown;
         this.UpdateFreq = UpdateFreq;
@@ -58,7 +58,7 @@ class KeywordSearchGlobalSettings implements Serializable {
         this.keywordLists = keywordLists;
     }
 
-    public KeywordSearchGlobalSettings() {
+    KeywordSearchGlobalSettings() {
         showSnippets = true;
         skipKnown = true;
         UpdateFreq = UpdateFrequency.DEFAULT;
@@ -173,15 +173,38 @@ class KeywordSearchGlobalSettings implements Serializable {
     /**
      * @return the keywordLists
      */
-    public List<KeywordList> getKeywordLists() {
+    List<KeywordList> getKeywordLists() {
         return keywordLists;
     }
 
     /**
      * @param keywordLists the keywordLists to set
      */
-    public void setKeywordLists(List<KeywordList> keywordLists) {
+    void setKeywordLists(List<KeywordList> keywordLists) {
         this.keywordLists = keywordLists;
         GlobalSettingsManager.getInstance().save(this);
+    }
+
+    void addKeywordList(KeywordList list) {
+        this.keywordLists.add(list);
+        GlobalSettingsManager.getInstance().save(this);
+    }
+
+    KeywordList getList(String name) {
+        for (KeywordList list : this.keywordLists) {
+            if (list.getName().equals(name)) {
+                return list;
+            }
+        }
+        return null;
+    }
+
+    void deleteList(String name) {
+        for (KeywordList list : this.keywordLists) {
+            if(list.getName().equals(name)) {
+                this.keywordLists.remove(list);
+                GlobalSettingsManager.getInstance().save(this);
+            }
+        }
     }
 }
