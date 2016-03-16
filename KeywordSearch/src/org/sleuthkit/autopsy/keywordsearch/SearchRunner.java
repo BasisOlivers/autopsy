@@ -97,7 +97,7 @@ public final class SearchRunner {
 
         // start the timer, if needed
         if ((jobs.size() > 0) && (updateTimerRunning == false)) {
-            final long updateIntervalMs = ((long) KeywordSearchSettings.getUpdateFrequency().getTime()) * 60 * 1000;
+            final long updateIntervalMs = ((long) GlobalSettingsManager.getInstance().getSettings().getUpdateFrequency().getTime()) * 60 * 1000;
             updateTimer.scheduleAtFixedRate(new UpdateTimerTask(), updateIntervalMs, updateIntervalMs);
             updateTimerRunning = true;
         }
