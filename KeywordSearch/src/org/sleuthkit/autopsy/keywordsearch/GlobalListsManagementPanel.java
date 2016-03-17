@@ -166,8 +166,10 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             return;
         }
         boolean shouldAdd = false;
+        boolean locked = false;
         if (settings.getList(listName) != null) {
             if (settings.getList(listName).isLocked()) {
+                locked = true;
                 boolean replace = KeywordSearchUtil.displayConfirmDialog(
                         NbBundle.getMessage(this.getClass(), "KeywordSearch.newKeywordListMsg"),
                         NbBundle.getMessage(this.getClass(), "KeywordSearchListsManagementPanel.newKeywordListDescription", listName),
@@ -188,7 +190,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             shouldAdd = true;
         }
         if (shouldAdd) {
-            settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, new ArrayList<Keyword>()));
+            settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, new ArrayList<Keyword>(), locked));
         }
         tableModel.resync();
 

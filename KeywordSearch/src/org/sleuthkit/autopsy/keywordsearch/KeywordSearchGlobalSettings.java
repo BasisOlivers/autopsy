@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,12 +37,14 @@ import org.openide.util.NbBundle;
 import org.openide.util.io.NbObjectInputStream;
 import org.openide.util.io.NbObjectOutputStream;
 import org.sleuthkit.autopsy.coreutils.Logger;
+import org.sleuthkit.autopsy.coreutils.MessageNotifyUtil;
 import org.sleuthkit.autopsy.coreutils.ModuleSettings;
 import org.sleuthkit.autopsy.coreutils.PlatformUtil;
 import org.sleuthkit.autopsy.coreutils.StringExtract;
 import org.sleuthkit.autopsy.coreutils.StringExtract.StringExtractUnicodeTable.SCRIPT;
 import org.sleuthkit.autopsy.keywordsearch.KeywordSearchIngestModule.UpdateFrequency;
 import static org.sleuthkit.autopsy.keywordsearch.KeywordSearchList.logger;
+import org.sleuthkit.datamodel.BlackboardAttribute;
 
 //This file contains constants and settings for KeywordSearch
 final class KeywordSearchGlobalSettings implements Serializable {
@@ -62,6 +65,7 @@ final class KeywordSearchGlobalSettings implements Serializable {
     private List<StringExtract.StringExtractUnicodeTable.SCRIPT> stringExtractScripts;
     private Map<String, String> stringExtractOptions;
     private Map<String, KeywordList> keywordLists;
+    private List<String> lockedLists;
     private static final long serialVersionUID = 1L;
     private transient PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     private static KeywordSearchGlobalSettings settings;
@@ -72,7 +76,7 @@ final class KeywordSearchGlobalSettings implements Serializable {
         this.UpdateFreq = UpdateFreq;
         this.stringExtractScripts = stringExtractScripts;
         this.stringExtractOptions = stringExtractOptions;
-        this.keywordLists = new HashMap<>();
+        this.keywordLists = new LinkedHashMap<>();
         for (KeywordList list : keywordLists) {
             this.keywordLists.put(list.getName(), list);
         }
@@ -90,6 +94,8 @@ final class KeywordSearchGlobalSettings implements Serializable {
                     this.stringExtractScripts = globalSettings.getStringExtractScripts();
                     this.stringExtractOptions = globalSettings.getStringExtractOptions();
                     this.keywordLists = new LinkedHashMap<>();
+                    this.lockedLists = new ArrayList<>();
+                    this.prepopulateLists();
                     for (KeywordList list : globalSettings.getKeywordLists()) {
                         this.keywordLists.put(list.getName(), list);
                     }
@@ -139,13 +145,64 @@ final class KeywordSearchGlobalSettings implements Serializable {
     /**
      * Saves this settings object to disk.
      */
-    private void save() {
+    synchronized private void save() {
         try (NbObjectOutputStream out = new NbObjectOutputStream(new FileOutputStream(KEYWORD_SERIALIZATION_PATH))) {
+            List<KeywordList> removedLists = new ArrayList();
+            for (String name : lockedLists) {
+                KeywordList removed = this.keywordLists.remove(name);
+                removedLists.add(removed);
+            }
             out.writeObject(this);
+            for (KeywordList list : removedLists) {
+                keywordLists.put(list.getName(), list);
+            }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Failed to write settings to " + KEYWORD_SERIALIZATION_PATH);
         }
 
+    }
+
+    synchronized private void prepopulateLists() {
+        if (!keywordLists.isEmpty()) {
+            return;
+        }
+        //phone number
+        List<Keyword> phones = new ArrayList<>();
+        phones.add(new Keyword("[(]{0,1}\\d\\d\\d[)]{0,1}[\\.-]\\d\\d\\d[\\.-]\\d\\d\\d\\d", false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_PHONE_NUMBER)); //NON-NLS
+        //phones.add(new Keyword("\\d{8,10}", false));
+        //IP address
+        List<Keyword> ips = new ArrayList<>();
+        ips.add(new Keyword("(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])", false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_IP_ADDRESS));
+        //email
+        List<Keyword> emails = new ArrayList<>();
+        emails.add(new Keyword("(?=.{8})[a-z0-9%+_-]+(?:\\.[a-z0-9%+_-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z]{2,4}(?<!\\.txt|\\.exe|\\.dll|\\.jpg|\\.xml)", //NON-NLS
+                false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_EMAIL));
+        //emails.add(new Keyword("[A-Z0-9._%-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}", 
+        //                       false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_EMAIL));
+        //URL
+        List<Keyword> urls = new ArrayList<>();
+        //urls.add(new Keyword("http://|https://|^www\\.", false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_URL));
+        urls.add(new Keyword("((((ht|f)tp(s?))\\://)|www\\.)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,5})(\\:[0-9]+)*(/($|[a-zA-Z0-9\\.\\,\\;\\?\\'\\\\+&amp;%\\$#\\=~_\\-]+))*", false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_URL)); //NON-NLS
+
+        //urls.add(new Keyword("ssh://", false, BlackboardAttribute.ATTRIBUTE_TYPE.TSK_URL));
+        //disable messages for harcoded/locked lists
+        String name;
+
+        name = "Phone Numbers"; //NON-NLS
+        lockedLists.add(name);
+        this.addKeywordList(new KeywordList(name, new Date(), new Date(), false, false, phones, true));
+
+        name = "IP Addresses"; //NON-NLS
+        lockedLists.add(name);
+        addKeywordList(new KeywordList(name, new Date(), new Date(), false, false, ips, true));
+
+        name = "Email Addresses"; //NON-NLS
+        lockedLists.add(name);
+        addKeywordList(new KeywordList(name, new Date(), new Date(), false, false, emails, true));
+
+        name = "URLs"; //NON-NLS
+        lockedLists.add(name);
+        addKeywordList(new KeywordList(name, new Date(), new Date(), false, false, urls, true));
     }
 
     /**
@@ -338,8 +395,31 @@ final class KeywordSearchGlobalSettings implements Serializable {
      * @param list The list to add
      */
     synchronized void addKeywordList(KeywordList list) {
-        this.keywordLists.put(list.getName(), list);
-        this.save();
+        if (!this.listExists(list.getName())) {
+            this.keywordLists.put(list.getName(), list);
+            try {
+                changeSupport.firePropertyChange(KeywordSearchList.ListsEvt.LIST_ADDED.toString(), null, list.getName());
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "KeywordSearchListsAbstract listener threw exception", e); //NON-NLS
+                MessageNotifyUtil.Notify.show(
+                        NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.moduleErr"),
+                        NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.addList.errMsg1.msg"),
+                        MessageNotifyUtil.MessageType.ERROR);
+            }
+            this.save();
+        } else {
+            this.keywordLists.put(list.getName(), list);
+            try {
+                changeSupport.firePropertyChange(KeywordSearchList.ListsEvt.LIST_UPDATED.toString(), null, list.getName());
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "KeywordSearchListsAbstract listener threw exception", e); //NON-NLS
+                MessageNotifyUtil.Notify.show(
+                        NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.moduleErr"),
+                        NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.addList.errMsg2.msg"),
+                        MessageNotifyUtil.MessageType.ERROR);
+            }
+            this.save();
+        }
     }
 
     /**
@@ -350,7 +430,29 @@ final class KeywordSearchGlobalSettings implements Serializable {
      */
     synchronized void addKeywordLists(List<KeywordList> lists) {
         for (KeywordList list : lists) {
-            this.keywordLists.put(list.getName(), list);
+            if (!this.listExists(list.getName())) {
+                this.keywordLists.put(list.getName(), list);
+                try {
+                    changeSupport.firePropertyChange(KeywordSearchList.ListsEvt.LIST_ADDED.toString(), null, list.getName());
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "KeywordSearchListsAbstract listener threw exception", e); //NON-NLS
+                    MessageNotifyUtil.Notify.show(
+                            NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.moduleErr"),
+                            NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.addList.errMsg1.msg"),
+                            MessageNotifyUtil.MessageType.ERROR);
+                }
+            } else {
+                this.keywordLists.put(list.getName(), list);
+                try {
+                    changeSupport.firePropertyChange(KeywordSearchList.ListsEvt.LIST_UPDATED.toString(), null, list.getName());
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "KeywordSearchListsAbstract listener threw exception", e); //NON-NLS
+                    MessageNotifyUtil.Notify.show(
+                            NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.moduleErr"),
+                            NbBundle.getMessage(this.getClass(), "KeywordSearchListsAbstract.addList.errMsg2.msg"),
+                            MessageNotifyUtil.MessageType.ERROR);
+                }
+            }
         }
         this.save();
     }
