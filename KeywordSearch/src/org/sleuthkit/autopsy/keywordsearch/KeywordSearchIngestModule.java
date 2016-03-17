@@ -202,7 +202,7 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
                 }
 
                 // check if this job has any searchable keywords    
-                List<KeywordList> keywordLists = GlobalSettingsManager.getInstance().getSettings().getKeywordLists();
+                List<KeywordList> keywordLists = KeywordSearchGlobalSettings.getSettings().getKeywordLists();
                 boolean hasKeywordsForSearch = false;
                 for (KeywordList keywordList : keywordLists) {
                     if (settings.keywordListIsEnabled(keywordList.getName()) && !keywordList.getKeywords().isEmpty()) {
@@ -219,12 +219,13 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
 
         //initialize extractors
         stringExtractor = new StringsTextExtractor(this);
-        stringExtractor.setScripts(KeywordSearchGlobalSettings.getStringExtractScripts());
-        stringExtractor.setOptions(KeywordSearchGlobalSettings.getStringExtractOptions());
+        KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
+        stringExtractor.setScripts(settings.getStringExtractScripts());
+        stringExtractor.setOptions(settings.getStringExtractOptions());
 
         //log the scripts used for debugging
         final StringBuilder sbScripts = new StringBuilder();
-        for (SCRIPT s : KeywordSearchGlobalSettings.getStringExtractScripts()) {
+        for (SCRIPT s : settings.getStringExtractScripts()) {
             sbScripts.append(s.name()).append(" ");
         }
         logger.log(Level.INFO, "Using string extract scripts: {0}", sbScripts.toString()); //NON-NLS
@@ -252,7 +253,7 @@ public final class KeywordSearchIngestModule implements FileIngestModule {
             return ProcessResult.OK;
         }
 
-        if (KeywordSearchGlobalSettings.getSkipKnown() && abstractFile.getKnown().equals(FileKnown.KNOWN)) {
+        if (KeywordSearchGlobalSettings.getSettings().getSkipKnown() && abstractFile.getKnown().equals(FileKnown.KNOWN)) {
             //index meta-data only
             indexer.indexFile(abstractFile, false);
             return ProcessResult.OK;

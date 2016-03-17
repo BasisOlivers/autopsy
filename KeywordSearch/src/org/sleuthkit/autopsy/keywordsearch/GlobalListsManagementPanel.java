@@ -159,7 +159,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
     }// </editor-fold>//GEN-END:initComponents
 
     private void newListButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newListButtonActionPerformed
-        KeywordSearchGlobalSettings settings = GlobalSettingsManager.getInstance().getSettings();
+        KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
         String listName = (String) JOptionPane.showInputDialog(null, NbBundle.getMessage(this.getClass(), "KeywordSearch.newKwListTitle"),
                 NbBundle.getMessage(this.getClass(), "KeywordSearch.newKeywordListMsg"), JOptionPane.PLAIN_MESSAGE, null, null, "");
         if (listName == null || listName.trim().equals("")) {
@@ -242,7 +242,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             List<KeywordList> toImport = reader.getListsL();
             List<KeywordList> toImportConfirmed = new ArrayList<KeywordList>();
 
-            final KeywordSearchGlobalSettings settings = GlobalSettingsManager.getInstance().getSettings();
+            final KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
 
             for (KeywordList list : toImport) {
                 //check name collisions
@@ -275,11 +275,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
             if (toImportConfirmed.isEmpty()) {
                 return;
             }
-
-            if (!writer.writeLists(toImportConfirmed)) {
-                KeywordSearchUtil.displayDialog(
-                        NbBundle.getMessage(this.getClass(), "KeywordSearch.listImportFeatureTitle"), NbBundle.getMessage(this.getClass(), "KeywordSearch.kwListFailImportMsg"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.INFO);
-            }
+            settings.addKeywordLists(toImportConfirmed);
 
         }
         tableModel.resync();
@@ -300,7 +296,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
                 return;
             } else if (KeywordSearchUtil.displayConfirmDialog(NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.title"), NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.body"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN)) {
                 String listName = (String) listsTable.getModel().getValueAt(selected[0], 0);
-                GlobalSettingsManager.getInstance().getSettings().deleteList(listName);
+                KeywordSearchGlobalSettings.getSettings().deleteList(listName);
             } else {
                 return;
             }
@@ -332,7 +328,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
 
     private class KeywordListTableModel extends AbstractTableModel {
 
-        private XmlKeywordSearchList listsHandle = XmlKeywordSearchList.getCurrent();
+        private KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
 
         @Override
         public int getColumnCount() {
@@ -341,7 +337,14 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
 
         @Override
         public int getRowCount() {
-            return listsHandle.getNumberLists(false);
+            List<KeywordList> totalLists = settings.getKeywordLists();
+            int unlockedCount = 0;
+            for (KeywordList list : totalLists) {
+                if (!list.isLocked()) {
+                    unlockedCount++;
+                }
+            }
+            return unlockedCount;
         }
 
         @Override
@@ -351,7 +354,14 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            return listsHandle.getListNames(false).get(rowIndex);
+            List<KeywordList> totalLists = settings.getKeywordLists();
+            List<KeywordList> unlockedLists = new ArrayList<KeywordList>();
+            for (KeywordList list : totalLists) {
+                if (!list.isLocked()) {
+                    unlockedLists.add(list);
+                }
+            }
+            return unlockedLists.get(rowIndex).getName();
         }
 
         @Override
@@ -377,7 +387,7 @@ class GlobalListsManagementPanel extends javax.swing.JPanel implements OptionsPa
                 toDel.add((String) getValueAt(0, selected[i]));
             }
             for (String del : toDel) {
-                listsHandle.deleteList(del);
+                settings.deleteList(del);
             }
         }
 

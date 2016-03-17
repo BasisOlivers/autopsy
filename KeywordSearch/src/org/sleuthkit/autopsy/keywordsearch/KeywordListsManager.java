@@ -47,7 +47,7 @@ public class KeywordListsManager extends Observable {
                 KeywordListsManager.this.notifyObservers();
             }
         };
-        XmlKeywordSearchList.getCurrent().addPropertyChangeListener(this.listsChangeListener);
+        KeywordSearchGlobalSettings.getSettings().addPropertyChangeListener(this.listsChangeListener);
     }
 
     /**
@@ -67,7 +67,7 @@ public class KeywordListsManager extends Observable {
      */
     public List<String> getKeywordListNames() {
         List<String> names = new ArrayList<>();
-        for (KeywordList list : GlobalSettingsManager.getInstance().getSettings().getKeywordLists()) {
+        for (KeywordList list : KeywordSearchGlobalSettings.getSettings().getKeywordLists()) {
             names.add(list.getName());
         }
         return names;
@@ -77,7 +77,7 @@ public class KeywordListsManager extends Observable {
      * Force reload of the keyword lists XML file.
      */
     public static void reloadKeywordLists(){
-        XmlKeywordSearchList.getCurrent().reload();
+        KeywordSearchGlobalSettings.getSettings();
     }    
 
 }

@@ -131,7 +131,7 @@ class LuceneQuery implements KeywordSearchQuery {
     public QueryResults performQuery() throws NoOpenCoreException {
         QueryResults results = new QueryResults(this, keywordList);
         //in case of single term literal query there is only 1 term
-        boolean showSnippets = KeywordSearchGlobalSettings.getShowSnippets();
+        boolean showSnippets = KeywordSearchGlobalSettings.getSettings().getShowSnippets();
         results.addResult(new Keyword(keywordString, true), performLuceneQuery(showSnippets));
 
         return results;
@@ -342,7 +342,7 @@ class LuceneQuery implements KeywordSearchQuery {
          */
         final String docId = solrDoc.getFieldValue(Server.Schema.ID.toString()).toString();
         String snippet = "";
-        if (KeywordSearchGlobalSettings.getShowSnippets()) {
+        if (KeywordSearchGlobalSettings.getSettings().getShowSnippets()) {
             List<String> snippetList = highlightResponse.get(docId).get(Server.Schema.TEXT.toString());
             // list is null if there wasn't a snippet
             if (snippetList != null) {

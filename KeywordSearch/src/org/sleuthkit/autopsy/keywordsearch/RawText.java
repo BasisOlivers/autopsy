@@ -238,7 +238,7 @@ class RawText implements IndexedText {
             if (content instanceof AbstractFile) {
                 //we know it's AbstractFile, but do quick check to make sure if we index other objects in future
                 boolean isKnown = TskData.FileKnown.KNOWN.equals(((AbstractFile) content).getKnown());
-                if (isKnown && KeywordSearchGlobalSettings.getSkipKnown()) {
+                if (isKnown && KeywordSearchGlobalSettings.getSettings().getSkipKnown()) {
                     msg = NbBundle.getMessage(this.getClass(), "ExtractedContentViewer.getSolrContent.knownFileMsg", name);
                 }
             }

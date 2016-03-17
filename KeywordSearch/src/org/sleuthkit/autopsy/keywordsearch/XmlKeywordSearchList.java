@@ -62,14 +62,6 @@ final class XmlKeywordSearchList extends KeywordSearchList {
     private static XmlKeywordSearchList currentInstance = null;
     private final DateFormat dateFormatter;
 
-    static synchronized XmlKeywordSearchList getCurrent() {
-        if (currentInstance == null) {
-            currentInstance = new XmlKeywordSearchList(CUR_LISTS_FILE);
-            currentInstance.reload();
-        }
-        return currentInstance;
-    }
-
     /**
      * Constructor to obtain handle on other that the current keyword list (such
      * as for import or export)
@@ -88,20 +80,14 @@ final class XmlKeywordSearchList extends KeywordSearchList {
 
     @Override
     public boolean save(boolean isExport) {
-        if (isExport) {
-            try {
-                GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
-                KeywordSearchGlobalSettings settings = settingsManager.getSettings();
-
-                List<KeywordList> lists = new ArrayList<>();
-                for (KeywordList list : theLists.values()) {
-                    lists.add(list);
-                }
-                settings.setKeywordLists(lists);
-                return true;
-            } catch (GlobalSettingsManager.GlobalSettingsManagerException ex) {
-                return false;
+        if (!isExport) {
+            KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
+            List<KeywordList> lists = new ArrayList<>();
+            for (KeywordList list : theLists.values()) {
+                lists.add(list);
             }
+            settings.setKeywordLists(lists);
+            return true;
         }
         boolean success = false;
 
@@ -163,18 +149,6 @@ final class XmlKeywordSearchList extends KeywordSearchList {
      */
     @Override
     public boolean load() {
-        if (this == XmlKeywordSearchList.getCurrent()) {
-            try {
-                GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
-                KeywordSearchGlobalSettings settings = settingsManager.getSettings();
-                for (KeywordList list : settings.getKeywordLists()) {
-                    theLists.put(list.getName(), list);
-                }
-                return true;
-            } catch (GlobalSettingsManager.GlobalSettingsManagerException ex) {
-                return false;
-            }
-        }
 
         final Document doc = XMLUtil.loadDoc(XmlKeywordSearchList.class, filePath);
         if (doc == null) {

@@ -42,13 +42,14 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
     }
 
     private void activateWidgets() {
-        skipNSRLCheckBox.setSelected(KeywordSearchGlobalSettings.getSkipKnown());
-        showSnippetsCB.setSelected(KeywordSearchGlobalSettings.getShowSnippets());
+        KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
+        skipNSRLCheckBox.setSelected(settings.getSkipKnown());
+        showSnippetsCB.setSelected(settings.getShowSnippets());
         boolean enable = !IngestManager.getInstance().isIngestRunning();
         skipNSRLCheckBox.setEnabled(enable);
         setTimeSettingEnabled(enable);
 
-        final UpdateFrequency curFreq = KeywordSearchGlobalSettings.getUpdateFrequency();
+        final UpdateFrequency curFreq = settings.getUpdateFrequency();
         switch (curFreq) {
             case FAST:
                 timeRadioButton1.setSelected(true);
@@ -244,9 +245,10 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
 
     @Override
     public void store() {
-        KeywordSearchGlobalSettings.setSkipKnown(skipNSRLCheckBox.isSelected());
-        KeywordSearchGlobalSettings.setUpdateFrequency(getSelectedTimeValue());
-        KeywordSearchGlobalSettings.setShowSnippets(showSnippetsCB.isSelected());
+        KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
+        settings.setSkipKnown(skipNSRLCheckBox.isSelected());
+        settings.setUpdateFrequency(getSelectedTimeValue());
+        settings.setShowSnippets(showSnippetsCB.isSelected());
     }
 
     @Override
@@ -286,7 +288,7 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
         timeGroup.add(timeRadioButton4);
         timeGroup.add(timeRadioButton5);
 
-        this.skipNSRLCheckBox.setSelected(KeywordSearchGlobalSettings.getSkipKnown());
+        this.skipNSRLCheckBox.setSelected(KeywordSearchGlobalSettings.getSettings().getSkipKnown());
 
         try {
             filesIndexedValue.setText(Integer.toString(KeywordSearch.getServer().queryNumIndexedFiles()));

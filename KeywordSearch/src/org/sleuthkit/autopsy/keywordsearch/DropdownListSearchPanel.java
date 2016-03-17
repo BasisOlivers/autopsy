@@ -315,7 +315,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
     private class KeywordListsTableModel extends AbstractTableModel {
         //data
 
-        private GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
+        private KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
         private List<ListTableEntry> listData = new ArrayList<>();
 
         @Override
@@ -405,7 +405,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         }
 
         KeywordList getListAt(int rowIndex) {
-            return settingsManager.getSettings().getList((String) getValueAt(rowIndex, 1));
+            return settings.getList((String) getValueAt(rowIndex, 1));
         }
 
         List<String> getSelectedLists() {
@@ -421,7 +421,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         List<KeywordList> getSelectedListsL() {
             List<KeywordList> ret = new ArrayList<>();
             for (String s : getSelectedLists()) {
-                ret.add(settingsManager.getSettings().getList(s));
+                ret.add(settings.getList(s));
             }
             return ret;
         }
@@ -434,7 +434,7 @@ class DropdownListSearchPanel extends KeywordSearchPanel {
         //resync model from handle, then update table
         void resync() {
             listData.clear();
-            addLists(settingsManager.getSettings().getKeywordLists());
+            addLists(settings.getKeywordLists());
             fireTableDataChanged();
         }
 

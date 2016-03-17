@@ -97,7 +97,7 @@ public final class SearchRunner {
 
         // start the timer, if needed
         if ((jobs.size() > 0) && (updateTimerRunning == false)) {
-            final long updateIntervalMs = ((long) KeywordSearchGlobalSettings.getUpdateFrequency().getTime()) * 60 * 1000;
+            final long updateIntervalMs = ((long) KeywordSearchGlobalSettings.getSettings().getUpdateFrequency().getTime()) * 60 * 1000;
             updateTimer.scheduleAtFixedRate(new UpdateTimerTask(), updateIntervalMs, updateIntervalMs);
             updateTimerRunning = true;
         }
@@ -536,14 +536,13 @@ public final class SearchRunner {
          * Sync-up the updated keywords from the currently used lists in the XML
          */
         private void updateKeywords() {
-            GlobalSettingsManager loader = GlobalSettingsManager.getInstance();
 
             keywords.clear();
             keywordToList.clear();
             keywordLists.clear();
 
             for (String name : keywordListNames) {
-                KeywordList list = loader.getSettings().getList(name);
+                KeywordList list = KeywordSearchGlobalSettings.getSettings().getList(name);
                 keywordLists.add(list);
                 for (Keyword k : list.getKeywords()) {
                     keywords.add(k);

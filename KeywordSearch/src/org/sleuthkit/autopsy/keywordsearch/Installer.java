@@ -43,7 +43,7 @@ class Installer extends ModuleInstall {
     @Override
     public void restored() {
         //Setup the default KeywordSearch configuration files
-        KeywordSearchGlobalSettings.setDefaults();
+        KeywordSearchGlobalSettings.getSettings();
 
         Case.addEventSubscriber(Case.Events.CURRENT_CASE.toString(), new KeywordSearch.CaseChangeListener());
 

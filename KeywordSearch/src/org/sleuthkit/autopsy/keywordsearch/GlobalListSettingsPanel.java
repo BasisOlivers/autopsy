@@ -20,6 +20,7 @@ package org.sleuthkit.autopsy.keywordsearch;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
 import org.openide.util.NbBundle;
@@ -45,8 +46,8 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                     String toDelete = editListPanel.getCurrentKeywordList().getName();
                     editListPanel.setCurrentKeywordList(null);
                     editListPanel.setButtonStates();
-                    GlobalSettingsManager deleter = GlobalSettingsManager.getInstance();
-                    deleter.getSettings().deleteList(toDelete);
+                    KeywordSearchGlobalSettings deleter = KeywordSearchGlobalSettings.getSettings();
+                    deleter.deleteList(toDelete);
                     listsManagementPanel.resync();
                 }
             }
@@ -78,13 +79,13 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                     return;
                 }
 
-                GlobalSettingsManager writer = GlobalSettingsManager.getInstance();
-                if (writer.getSettings().getList(listName) != null && writer.getSettings().getList(listName).isLocked()) {
+                KeywordSearchGlobalSettings settings = KeywordSearchGlobalSettings.getSettings();
+                if (settings.listExists(listName) && settings.getList(listName).isLocked()) {
                     KeywordSearchUtil.displayDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.noOwDefaultMsg"), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN);
                     return;
                 }
                 boolean shouldAdd = false;
-                if (writer.listExists(listName)) {
+                if (settings.getList(listName) != null) {
                     boolean replace = KeywordSearchUtil.displayConfirmDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.kwListExistMsg", listName),
                             KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN);
                     if (replace) {
@@ -96,7 +97,7 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                 }
 
                 if (shouldAdd) {
-                    writer.addList(listName, keywords);
+                        settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, keywords));
                     KeywordSearchUtil.displayDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.kwListSavedMsg", listName), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.INFO);
                 }
 

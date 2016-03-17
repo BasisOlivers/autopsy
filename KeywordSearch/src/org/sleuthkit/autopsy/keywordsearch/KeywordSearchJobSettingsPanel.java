@@ -33,14 +33,14 @@ import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettings;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettingsPanel;
 
 /**
- * Ingest job settings panel for keyword search file ingest modules.
+ * Ingest job globalSettings panel for keyword search file ingest modules.
  */
 public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSettingsPanel implements PropertyChangeListener {
 
     private final KeywordListsTableModel tableModel = new KeywordListsTableModel();
     private final List<String> keywordListNames = new ArrayList<>();
     private final Map<String, Boolean> keywordListStates = new HashMap<>();
-    private final GlobalSettingsManager settingsManager = GlobalSettingsManager.getInstance();
+    private final KeywordSearchGlobalSettings globalSettings = KeywordSearchGlobalSettings.getSettings();
 
     KeywordSearchJobSettingsPanel(KeywordSearchJobSettings initialSettings) {
         initializeKeywordListSettings(initialSettings);
@@ -51,7 +51,7 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
     private void initializeKeywordListSettings(KeywordSearchJobSettings settings) {
         keywordListNames.clear();
         keywordListStates.clear();
-        List<KeywordList> keywordLists = settingsManager.getSettings().getKeywordLists();
+        List<KeywordList> keywordLists = this.globalSettings.getKeywordLists();
         for (KeywordList list : keywordLists) {
             String listName = list.getName();
             keywordListNames.add(listName);
@@ -63,7 +63,7 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
         customizeKeywordListsTable();
         displayLanguages();
         displayEncodings();
-        keywordListsManager.addPropertyChangeListener(this);
+        globalSettings.addPropertyChangeListener(this);
         languagesLabel.setText("<html>" + org.openide.util.NbBundle.getMessage(KeywordSearchJobSettingsPanel.class, "KeywordSearchJobSettingsPanel.languagesLabel.text") + "</html>"); // NOI18N NON-NLS
     }
 
@@ -85,7 +85,7 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
     }
 
     private void displayLanguages() {
-        List<SCRIPT> scripts = settingsManager.getSettings().getStringExtractScripts();
+        List<SCRIPT> scripts = globalSettings.getStringExtractScripts();
         StringBuilder langs = new StringBuilder();
         langs.append("<html>"); //NON-NLS
         for (int i = 0; i < scripts.size(); i++) {
@@ -101,8 +101,8 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
     }
 
     private void displayEncodings() {
-        String utf8 = settingsManager.getSettings().getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF8.toString());
-        String utf16 = settingsManager.getSettings().getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF16.toString());
+        String utf8 = globalSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF8.toString());
+        String utf16 = globalSettings.getStringExtractOption(TextExtractor.ExtractOptions.EXTRACT_UTF16.toString());
         ArrayList<String> encodingsList = new ArrayList<>();
         if (utf8 == null || Boolean.parseBoolean(utf8)) {
             encodingsList.add("UTF8");
@@ -134,7 +134,7 @@ public final class KeywordSearchJobSettingsPanel extends IngestModuleIngestJobSe
 
     private void updateKeywordListSettings() {
         // Get the names of the current set of keyword lists.
-        List<KeywordList> keywordLists = settingsManager.getSettings().getKeywordLists();
+        List<KeywordList> keywordLists = globalSettings.getKeywordLists();
         List<String> currentListNames = new ArrayList<>();
         for (KeywordList list : keywordLists) {
             currentListNames.add(list.getName());
