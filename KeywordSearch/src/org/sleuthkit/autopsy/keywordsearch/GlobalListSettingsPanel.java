@@ -85,7 +85,7 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                     return;
                 }
                 boolean shouldAdd = false;
-                if (settings.getList(listName) != null) {
+                if (settings.listExists(listName)) {
                     boolean replace = KeywordSearchUtil.displayConfirmDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.kwListExistMsg", listName),
                             KeywordSearchUtil.DIALOG_MESSAGE_TYPE.WARN);
                     if (replace) {
@@ -97,7 +97,7 @@ final class GlobalListSettingsPanel extends javax.swing.JPanel implements Option
                 }
 
                 if (shouldAdd) {
-                        settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, keywords));
+                    settings.addKeywordList(new KeywordList(listName, new Date(), new Date(), true, true, keywords));
                     KeywordSearchUtil.displayDialog(FEATURE_NAME, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel1.customizeComponents.kwListSavedMsg", listName), KeywordSearchUtil.DIALOG_MESSAGE_TYPE.INFO);
                 }
 
