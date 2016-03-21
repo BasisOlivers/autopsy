@@ -207,6 +207,15 @@ public class ExtractedContent implements AutopsyVisitableItem {
         private final ArrayList<BlackboardArtifact.Type> doNotShow = new ArrayList<>();
         // maps the artifact type to its child node 
         private final HashMap<BlackboardArtifact.Type, TypeNode> typeNodeList = new HashMap<>();
+        private final PreferenceChangeListener preferenceChange = new PreferenceChangeListener() {
+
+            @Override
+            public void preferenceChange(PreferenceChangeEvent evt) {
+                if (evt.getKey().equals(UserPreferences.DISPLAY_TIMES_IN_LOCAL_TIME)) {
+                    refresh(true);
+                }
+            }
+        };
 
         public TypeFactory() {
             super();
@@ -291,6 +300,7 @@ public class ExtractedContent implements AutopsyVisitableItem {
             IngestManager.getInstance().addIngestJobEventListener(pcl);
             IngestManager.getInstance().addIngestModuleEventListener(pcl);
             Case.addPropertyChangeListener(pcl);
+            UserPreferences.addChangeListener(preferenceChange);
         }
 
         @Override
@@ -478,7 +488,7 @@ public class ExtractedContent implements AutopsyVisitableItem {
                 }
             }
         };
-        
+
         private final PreferenceChangeListener preferenceChange = new PreferenceChangeListener() {
 
             @Override
@@ -500,7 +510,7 @@ public class ExtractedContent implements AutopsyVisitableItem {
         protected void removeNotify() {
             IngestManager.getInstance().removeIngestJobEventListener(pcl);
             IngestManager.getInstance().removeIngestModuleEventListener(pcl);
-            
+
         }
 
         @Override
