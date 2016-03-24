@@ -49,7 +49,10 @@ public final class RunIngestModulesDialog extends JDialog {
     private static final long serialVersionUID = 1L;
     private static final String TITLE = NbBundle.getMessage(RunIngestModulesDialog.class, "IngestDialog.title.text");
     private final IngestType ingestType;
-    private static Dimension DIMENSIONS = new Dimension(500, 300);
+    //Dimension below should match the preferred dimension of
+    //IngestJobsSettingsPanel + the size of the button panel. It is used for
+    //the alignment of this dialog on the screen.
+    private static Dimension DIMENSIONS = new Dimension(500, 335);
     private final List<Content> dataSources = new ArrayList<>();
     private IngestJobSettingsPanel ingestJobSettingsPanel;
 
@@ -138,7 +141,7 @@ public final class RunIngestModulesDialog extends JDialog {
         buttonPanel.add(startButton);
         buttonPanel.add(new javax.swing.Box.Filler(new Dimension(10, 10), new Dimension(10, 10), new Dimension(10, 10)));
         buttonPanel.add(closeButton);
-        add(buttonPanel, BorderLayout.LINE_START);
+        add(buttonPanel, BorderLayout.LINE_END);
 
         /**
          * Add a handler for when the dialog window is closed directly,
@@ -196,7 +199,7 @@ public final class RunIngestModulesDialog extends JDialog {
             JOptionPane.showMessageDialog(null, warningMessage.toString());
         }
     }
-    
+
     /**
      * Constructs a dialog box that allows a user to configure and execute
      * analysis of one or more data sources with ingest modules.
@@ -236,5 +239,5 @@ public final class RunIngestModulesDialog extends JDialog {
         this.dataSources.clear();
         this.dataSources.addAll(dataSources);
     }
-    
+
 }

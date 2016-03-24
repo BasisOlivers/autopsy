@@ -53,7 +53,7 @@ public class KeywordSearchModuleFactory extends IngestModuleFactoryAdapter {
 
     @Override
     public String getModuleDescription() {
-        return NbBundle.getMessage(KeywordSearchIngestModule.class, "KeywordSearchIngestModule.moduleDescription");
+        return "<html>" + NbBundle.getMessage(KeywordSearchIngestModule.class, "KeywordSearchIngestModule.moduleDescription") + "</html>";
     }
 
     @Override
