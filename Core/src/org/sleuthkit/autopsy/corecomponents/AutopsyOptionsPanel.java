@@ -18,14 +18,9 @@
  */
 package org.sleuthkit.autopsy.corecomponents;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.text.NumberFormat;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFormattedTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.core.UserPreferences;
 
@@ -34,7 +29,7 @@ import org.sleuthkit.autopsy.core.UserPreferences;
  */
 final class AutopsyOptionsPanel extends javax.swing.JPanel {
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final AutopsyOptionsPanelController controller;
 
     AutopsyOptionsPanel(AutopsyOptionsPanelController controller) {
         initComponents();
@@ -77,25 +72,7 @@ final class AutopsyOptionsPanel extends javax.swing.JPanel {
         }
         numberOfFileIngestThreadsComboBox.setModel(new DefaultComboBoxModel<>(fileIngestThreadCountChoices));
         restartRequiredLabel.setText(NbBundle.getMessage(AutopsyOptionsPanel.class, "AutopsyOptionsPanel.restartRequiredLabel.text", recommendedFileIngestThreadCount));
-        // TODO listen to changes in form fields and call controller.changed()
-        DocumentListener docListener = new DocumentListener() {
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
-            }
-        };
-        this.jFormattedTextFieldProcTimeOutHrs.getDocument().addDocumentListener(docListener);
+        this.controller = controller;
         
     }
 
@@ -137,16 +114,6 @@ final class AutopsyOptionsPanel extends javax.swing.JPanel {
             long timeOutHrs = (long) jFormattedTextFieldProcTimeOutHrs.getValue();
             UserPreferences.setProcessTimeOutHrs((int) timeOutHrs);
         }
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.removePropertyChangeListener(l);
     }
 
     boolean valid() {
@@ -348,39 +315,39 @@ final class AutopsyOptionsPanel extends javax.swing.JPanel {
 
     private void jCheckBoxEnableProcTimeoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableProcTimeoutActionPerformed
         jFormattedTextFieldProcTimeOutHrs.setEditable(jCheckBoxEnableProcTimeout.isSelected());
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_jCheckBoxEnableProcTimeoutActionPerformed
 
     private void useBestViewerRBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useBestViewerRBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_useBestViewerRBActionPerformed
 
     private void keepCurrentViewerRBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keepCurrentViewerRBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_keepCurrentViewerRBActionPerformed
 
     private void dataSourcesHideKnownCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dataSourcesHideKnownCBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_dataSourcesHideKnownCBActionPerformed
 
     private void viewsHideKnownCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewsHideKnownCBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_viewsHideKnownCBActionPerformed
 
     private void useLocalTimeRBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useLocalTimeRBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_useLocalTimeRBActionPerformed
 
     private void useGMTTimeRBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useGMTTimeRBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_useGMTTimeRBActionPerformed
 
     private void numberOfFileIngestThreadsComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_numberOfFileIngestThreadsComboBoxActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_numberOfFileIngestThreadsComboBoxActionPerformed
 
     private void jFormattedTextFieldProcTimeOutHrsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFormattedTextFieldProcTimeOutHrsActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_jFormattedTextFieldProcTimeOutHrsActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

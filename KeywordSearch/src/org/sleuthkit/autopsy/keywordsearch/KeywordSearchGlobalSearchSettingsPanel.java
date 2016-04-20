@@ -20,9 +20,7 @@ package org.sleuthkit.autopsy.keywordsearch;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.logging.Level;
-import org.netbeans.spi.options.OptionsPanelController;
 import org.sleuthkit.autopsy.corecomponents.OptionsPanel;
 import org.sleuthkit.autopsy.coreutils.Logger;
 import org.sleuthkit.autopsy.ingest.IngestManager;
@@ -34,12 +32,13 @@ import org.sleuthkit.autopsy.keywordsearch.KeywordSearchIngestModule.UpdateFrequ
 class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implements OptionsPanel {
 
     private final Logger logger = Logger.getLogger(KeywordSearchGlobalSearchSettingsPanel.class.getName());
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final KeywordSearchOptionsPanelController controller;
 
     /**
      * Creates new form KeywordSearchConfigurationPanel2
      */
-    KeywordSearchGlobalSearchSettingsPanel() {
+    KeywordSearchGlobalSearchSettingsPanel(KeywordSearchOptionsPanelController controller) {
+        this.controller = controller;
         initComponents();
         customizeComponents();
     }
@@ -74,16 +73,6 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
                 timeRadioButton3.setSelected(true);
                 break;
         }
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.removePropertyChangeListener(l);
     }
 
     /**
@@ -262,31 +251,31 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
     }// </editor-fold>//GEN-END:initComponents
 
     private void timeRadioButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeRadioButton5ActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_timeRadioButton5ActionPerformed
 
     private void skipNSRLCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_skipNSRLCheckBoxActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_skipNSRLCheckBoxActionPerformed
 
     private void showSnippetsCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showSnippetsCBActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_showSnippetsCBActionPerformed
 
     private void timeRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeRadioButton1ActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_timeRadioButton1ActionPerformed
 
     private void timeRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeRadioButton2ActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_timeRadioButton2ActionPerformed
 
     private void timeRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeRadioButton3ActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_timeRadioButton3ActionPerformed
 
     private void timeRadioButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeRadioButton4ActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_timeRadioButton4ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -364,22 +353,22 @@ class KeywordSearchGlobalSearchSettingsPanel extends javax.swing.JPanel implemen
 
         KeywordSearch.addNumIndexedFilesChangeListener(
                 new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                String changed = evt.getPropertyName();
-                Object newValue = evt.getNewValue();
+                    @Override
+                    public void propertyChange(PropertyChangeEvent evt) {
+                        String changed = evt.getPropertyName();
+                        Object newValue = evt.getNewValue();
 
-                if (changed.equals(KeywordSearch.NUM_FILES_CHANGE_EVT)) {
-                    int newFilesIndexed = ((Integer) newValue).intValue();
-                    filesIndexedValue.setText(Integer.toString(newFilesIndexed));
-                    try {
-                        chunksValLabel.setText(Integer.toString(KeywordSearch.getServer().queryNumIndexedChunks()));
-                    } catch (KeywordSearchModuleException | NoOpenCoreException ex) {
-                        logger.log(Level.WARNING, "Could not get number of indexed chunks"); //NON-NLS
+                        if (changed.equals(KeywordSearch.NUM_FILES_CHANGE_EVT)) {
+                            int newFilesIndexed = ((Integer) newValue).intValue();
+                            filesIndexedValue.setText(Integer.toString(newFilesIndexed));
+                            try {
+                                chunksValLabel.setText(Integer.toString(KeywordSearch.getServer().queryNumIndexedChunks()));
+                            } catch (KeywordSearchModuleException | NoOpenCoreException ex) {
+                                logger.log(Level.WARNING, "Could not get number of indexed chunks"); //NON-NLS
 
+                            }
+                        }
                     }
-                }
-            }
-        });
+                });
     }
 }

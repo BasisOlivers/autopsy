@@ -31,8 +31,10 @@ final class KeywordSearchGlobalSettingsPanel extends IngestModuleGlobalSettingsP
     private GlobalListSettingsPanel listsPanel;
     private KeywordSearchGlobalLanguageSettingsPanel languagesPanel;
     private KeywordSearchGlobalSearchSettingsPanel generalPanel;
+    private final KeywordSearchOptionsPanelController controller;
 
-    public KeywordSearchGlobalSettingsPanel() {
+    public KeywordSearchGlobalSettingsPanel(KeywordSearchOptionsPanelController controller) {
+        this.controller = controller;
         initComponents();
         customizeComponents();
     }
@@ -40,9 +42,9 @@ final class KeywordSearchGlobalSettingsPanel extends IngestModuleGlobalSettingsP
     @NbBundle.Messages({"KeywordSearchGlobalSettingsPanel.Title=Global Keyword Search Settings"})
     private void customizeComponents() {
         setName(Bundle.KeywordSearchGlobalSettingsPanel_Title());
-        listsPanel = new GlobalListSettingsPanel();
-        languagesPanel = new KeywordSearchGlobalLanguageSettingsPanel();
-        generalPanel = new KeywordSearchGlobalSearchSettingsPanel();
+        listsPanel = new GlobalListSettingsPanel(controller);
+        languagesPanel = new KeywordSearchGlobalLanguageSettingsPanel(controller);
+        generalPanel = new KeywordSearchGlobalSearchSettingsPanel(controller);
         tabbedPane.insertTab(NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel.customizeComponents.listTabTitle"), null,
                 listsPanel, NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel.customizeComponents.listLabToolTip"), 0);
         tabbedPane.insertTab(NbBundle.getMessage(this.getClass(), "KeywordSearchConfigurationPanel.customizeComponents.stringExtTitle"), null,

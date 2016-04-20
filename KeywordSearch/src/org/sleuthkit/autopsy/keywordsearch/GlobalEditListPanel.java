@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +39,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
-import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.corecomponents.OptionsPanel;
 import org.sleuthkit.autopsy.coreutils.Logger;
@@ -54,13 +52,14 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
     private static final Logger logger = Logger.getLogger(GlobalEditListPanel.class.getName());
     private KeywordTableModel tableModel;
     private KeywordList currentKeywordList;
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final KeywordSearchOptionsPanelController controller;
 
     /**
      * Creates new form GlobalEditListPanel
      */
-    GlobalEditListPanel() {
+    GlobalEditListPanel(KeywordSearchOptionsPanelController controller) {
         tableModel = new KeywordTableModel();
+        this.controller = controller;
         initComponents();
         customizeComponents();
     }
@@ -142,16 +141,6 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
                 }
             }
         });
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.removePropertyChangeListener(l);
     }
 
     void setButtonStates() {
@@ -441,7 +430,7 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
         XmlKeywordSearchList.getCurrent().addList(currentKeywordList);
         chRegex.setSelected(false);
         addWordField.setText("");
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
 
         setButtonStates();
     }//GEN-LAST:event_addWordButtonActionPerformed
@@ -452,7 +441,7 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
             tableModel.deleteSelected(keywordTable.getSelectedRows());
             XmlKeywordSearchList.getCurrent().addList(currentKeywordList);
             setButtonStates();
-            pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+            controller.changed();
         }
     }//GEN-LAST:event_deleteWordButtonActionPerformed
 
@@ -515,11 +504,11 @@ class GlobalEditListPanel extends javax.swing.JPanel implements ListSelectionLis
         currentKeywordList.setIngestMessages(ingestMessagesCheckbox.isSelected());
         XmlKeywordSearchList updater = XmlKeywordSearchList.getCurrent();
         updater.addList(currentKeywordList);
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_ingestMessagesCheckboxActionPerformed
 
     private void deleteListButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteListButtonActionPerformed
-        pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, null, null);
+        controller.changed();
     }//GEN-LAST:event_deleteListButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

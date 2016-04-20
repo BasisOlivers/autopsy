@@ -28,10 +28,14 @@ import org.sleuthkit.autopsy.corecomponents.OptionsPanel;
 
 final class GlobalListSettingsPanel extends javax.swing.JPanel implements OptionsPanel {
 
-    private final GlobalListsManagementPanel listsManagementPanel = new GlobalListsManagementPanel();
-    private final GlobalEditListPanel editListPanel = new GlobalEditListPanel();
+    private final GlobalListsManagementPanel listsManagementPanel;
+    private final GlobalEditListPanel editListPanel;
+    private final KeywordSearchOptionsPanelController controller;
 
-    GlobalListSettingsPanel() {
+    GlobalListSettingsPanel(KeywordSearchOptionsPanelController controller) {
+        this.controller = controller;
+        this.listsManagementPanel = new GlobalListsManagementPanel(controller);
+        this.editListPanel = new GlobalEditListPanel(controller);
         initComponents();
         customizeComponents();
         setName(org.openide.util.NbBundle.getMessage(DropdownToolbar.class, "ListBundleConfig"));

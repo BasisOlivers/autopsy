@@ -18,7 +18,6 @@
  */
 package org.sleuthkit.autopsy.corecomponents;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.logging.Level;
@@ -109,14 +108,6 @@ public final class AutopsyOptionsPanelController extends OptionsPanelController 
     private AutopsyOptionsPanel getPanel() {
         if (panel == null) {
             panel = new AutopsyOptionsPanel(this);
-            panel.addPropertyChangeListener(new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    if (evt.getPropertyName().equals(OptionsPanelController.PROP_CHANGED)) {
-                        changed = true;
-                    }
-                }
-            });
         }
         return panel;
     }

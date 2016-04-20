@@ -25,12 +25,12 @@ import java.util.List;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 import org.sleuthkit.autopsy.coreutils.Version;
-import org.sleuthkit.autopsy.ingest.IngestModuleFactoryAdapter;
 import org.sleuthkit.autopsy.ingest.FileIngestModule;
 import org.sleuthkit.autopsy.ingest.IngestModuleFactory;
+import org.sleuthkit.autopsy.ingest.IngestModuleFactoryAdapter;
+import org.sleuthkit.autopsy.ingest.IngestModuleGlobalSettingsPanel;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettings;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettingsPanel;
-import org.sleuthkit.autopsy.ingest.IngestModuleGlobalSettingsPanel;
 
 /**
  * An ingest module factory that creates file ingest modules that do keyword
@@ -102,7 +102,7 @@ public class KeywordSearchModuleFactory extends IngestModuleFactoryAdapter {
 
     @Override
     public IngestModuleGlobalSettingsPanel getGlobalSettingsPanel() {
-        KeywordSearchGlobalSettingsPanel globalSettingsPanel = new KeywordSearchGlobalSettingsPanel();
+        KeywordSearchGlobalSettingsPanel globalSettingsPanel = new KeywordSearchGlobalSettingsPanel(new );
         globalSettingsPanel.load();
         return globalSettingsPanel;
     }
