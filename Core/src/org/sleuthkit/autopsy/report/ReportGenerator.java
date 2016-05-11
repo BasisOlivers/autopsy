@@ -176,6 +176,7 @@ class ReportGenerator {
                 @Override
                 protected Integer doInBackground() throws Exception {
                     generalReportModule.generateReport(reportPath, progressPanel);
+                    Case.getCurrentCase().addReport(reportPath, generalReportModule.getModuleName(), "");
                     return 1;
                 }
 
@@ -222,6 +223,7 @@ class ReportGenerator {
                 @Override
                 protected Integer doInBackground() throws Exception {
                     tableReport.startReport(reportPath);
+                    Case.getCurrentCase().addReport(reportPath, tableReport.getModuleName(), "");
                     TableReportGenerator generator = new TableReportGenerator(artifactTypeSelections, tagNameSelections, progressPanel, tableReport);
                     generator.execute();
                     tableReport.endReport();
@@ -285,6 +287,7 @@ class ReportGenerator {
                     int numFiles = files.size();
                     if (progressPanel.getStatus() != ReportStatus.CANCELED) {
                         fileReportModule.startReport(reportPath);
+                        Case.getCurrentCase().addReport(reportPath, fileReportModule.getModuleName(), "");
                         fileReportModule.startTable(enabled);
                     }
                     progressPanel.setIndeterminate(false);
