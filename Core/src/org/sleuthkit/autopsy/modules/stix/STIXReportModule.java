@@ -671,4 +671,10 @@ public class STIXReportModule implements GeneralReportModule {
         return configPanel;
     }
 
+    @Override
+    public String getModuleName() {
+        return NbBundle.getMessage(this.getClass(),
+                                "STIXReportModule.getName.text");
+    }
+
 }

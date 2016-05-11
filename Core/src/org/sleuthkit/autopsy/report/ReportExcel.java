@@ -331,4 +331,10 @@ class ReportExcel implements TableReportModule {
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
     }
+
+    @Override
+    public String getModuleName() {
+        return NbBundle.getMessage(this.getClass(),
+                    "ReportExcel.endReport.srcModuleName.text");
+    }
 }

@@ -1,4 +1,4 @@
- /*
+/*
  *
  * Autopsy Forensic Browser
  * 
@@ -47,4 +47,11 @@ interface ReportModule {
      *         module does not produce a report file.
      */
     public String getRelativeFilePath();
+
+    /**
+     * Gets the name of the module to be used in the database
+     *
+     * @return The name of the module used when added to the db.
+     */
+    String getModuleName();
 }

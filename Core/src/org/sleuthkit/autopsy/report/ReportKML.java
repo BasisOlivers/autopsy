@@ -377,4 +377,10 @@ class ReportKML implements GeneralReportModule {
     public JPanel getConfigurationPanel() {
         return null; // No configuration panel
     }
+
+    @Override
+    public String getModuleName() {
+        return NbBundle.getMessage(this.getClass(),
+                "ReportKML.genReport.srcModuleName.text");
+    }
 }

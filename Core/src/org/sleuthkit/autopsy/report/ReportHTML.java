@@ -56,7 +56,6 @@ import org.sleuthkit.datamodel.BlackboardArtifact.ARTIFACT_TYPE;
 import org.sleuthkit.datamodel.Content;
 import org.sleuthkit.datamodel.ContentTag;
 import org.sleuthkit.datamodel.Image;
-import org.sleuthkit.datamodel.SleuthkitCase;
 import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskData.TSK_DB_FILES_TYPE_ENUM;
 
@@ -67,7 +66,6 @@ class ReportHTML implements TableReportModule {
     private static ReportHTML instance;
     private static final int MAX_THUMBS_PER_PAGE = 1000;
     private Case currentCase;
-    private SleuthkitCase skCase;
     static Integer THUMBNAIL_COLUMNS = 5;
 
     private Map<String, Integer> dataTypes;
@@ -1117,6 +1115,12 @@ class ReportHTML implements TableReportModule {
         }
 
         return THUMBS_REL_PATH + thumbFile.getName();
+    }
+
+    @Override
+    public String getModuleName() {
+        return NbBundle.getMessage(this.getClass(),
+                    "ReportHTML.writeIndex.srcModuleName.text");
     }
 
 }

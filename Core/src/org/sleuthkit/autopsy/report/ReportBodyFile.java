@@ -1,4 +1,4 @@
- /*
+/*
  *
  * Autopsy Forensic Browser
  * 
@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import javax.swing.JPanel;
-
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.coreutils.Logger;
@@ -192,5 +191,11 @@ class ReportBodyFile implements GeneralReportModule {
     @Override
     public JPanel getConfigurationPanel() {
         return null; // No configuration panel
+    }
+
+    @Override
+    public String getModuleName() {
+        return NbBundle.getMessage(this.getClass(),
+                "ReportBodyFile.generateReport.srcModuleName.text");
     }
 }
