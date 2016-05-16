@@ -1,0 +1,63 @@
+This page covers the motivation for and basics of Autopsy modules. It applies to both Java and Python modules. Later pages will focus on getting the development environment setup and how to write specific modules.\hypertarget{platform_page_platform_motivation}{}\section{Why Write Modules?}\label{platform_page_platform_motivation}
+When writing digital forensics programs, the developer often has to focus on three areas\+:
+\begin{DoxyItemize}
+\item What types of data will the user be giving you (disk image, logical files, etc.).
+\item How to do the analysis that you want to do.
+\item How to show the results to the user and include the results into a report.
+\end{DoxyItemize}
+
+The main reason for considering writing an Autopsy module instead of a stand-\/alone tool is that Autopsy will deal with the various data inputs and showing the user the results. All you need to do is focus on the analytics.\hypertarget{platform_page_platform_frameworks}{}\section{Types of Modules}\label{platform_page_platform_frameworks}
+Autopsy was designed to be an extensible platform for other developers to leverage. There are several places in the platform where plug-\/in modules can be applied.
+\begin{DoxyItemize}
+\item {\bfseries Ingest Modules\+:} These modules are run when a new data source (such as a disk image) is added to a case (and can be re-\/run afterwards too). These modules come in two forms\+:
+\begin{DoxyItemize}
+\item File Ingest Modules are called for every file in the data source. Use this type of module if you want to examine the contents of all or most of the files. Examples include hash calculation, hash lookup, file type identification, and entropy calculation. These modules are passed in a reference to a file to analyze.
+\item Data Source Ingest Modules are called once for every image or set of logical files. These modules can use the database to query for one or more files and perform analysis on them. Examples include web artifact analysis and searches that can rely only file names and extensions. Note that these modules will not have access to the contents of Z\+IP files. These modules are also often used when wrapping an executable that takes a disk image in as input. See \hyperlink{mod_ingest_page}{Developing Ingest Modules} for details on building these modules.
+\end{DoxyItemize}
+\item {\bfseries Report Modules\+:} These modules are (typically) run after the user has reviewed results and tagged files. Their intention is to create an output report of the results, but they can also be used to perform analysis. See \hyperlink{mod_report_page}{Developing Report Modules} for details on creating these modules.
+\item {\bfseries Content Viewers\+:} These modules are graphical and focus on displaying a specific file in some unique way. These are the modules in the lower right of the interface. The platform comes with viewers to view the file in hexadecimal, extract the strings from the file, and view images and movies. See \hyperlink{mod_content_page}{Developing Content Viewer Modules} for details on creating these modules.
+\item {\bfseries Result Viewers\+:} These modules show information about a set of files. These modules are in the upper right of the interface. The platform comes with viewers to view the set of files in a table and thumbnails. These are not commonly built and extended. See \hyperlink{mod_result_page}{Developing Result Viewer Modules} for details on creating these modules.
+\end{DoxyItemize}\hypertarget{platform_page_platform_languages}{}\section{Languages}\label{platform_page_platform_languages}
+Autopsy is written in Java and all of previously listed modules can also be written in Java. The \hyperlink{mod_dev_page}{Java Development Setup} page covers setup of a Java environment.
+
+You can also write some of the modules in Python, namely ingest an report modules. The setup for Python is far easier than Java, so it is the easiest way to get started. See \hyperlink{mod_dev_py_page}{Python Development Setup} for setup details. Python modules have access to all of the same services as Java modules do, except they cannot currently make UI elements. Therefore, you really should read all of this document (even though it is Java-\/focused) because it can all be used in Python.\hypertarget{platform_page_platform_basics}{}\section{Basic Concepts}\label{platform_page_platform_basics}
+Before we focus on the development environment or module details, let\textquotesingle{}s cover some basic Autopsy concepts.
+
+
+\begin{DoxyItemize}
+\item {\bfseries Data Source}\+: Data source is the term used in Autopsy to refer to disk images and logical files that are added to a case. Data sources are represented in Autopsy using several types of classes from the org.\+sleuthkit.\+datamodel package.
+\item {\bfseries Case}\+: A case is a container for one or more data sources in Autopsy. A case is represented by a org.\+sleuthkit.\+autopsy.\+casemodule.\+Case class. Only one case can be open at a time. You can get the current case using org.\+sleuthkit.\+autopsy.\+casemodule.\+Case.\+get\+Current\+Case().
+\item {\bfseries Central Database}\+: A central S\+Q\+Lite or Postgre\+S\+QL database exists and stores all file metadata and analysis results. Access to this database can be found from the org.\+sleuthkit.\+datamodel.\+Sleuthkit\+Case class, but you\textquotesingle{}ll probably never need to directly interact with it. All modules can query it for information, though many do not need to. For example, file-\/level ingest modules will be passed in a reference to a specific file to analyze and may never need to directly go to the database for more information.
+\item {\bfseries Blackboard\+:} The blackboard is how modules communicate back and forth. Modules post their results to the blackboard in the form of artifacts and the UI will display them. See the \hyperlink{platform_page_platform_blackboard}{The Blackboard} section for more details.
+\item {\bfseries Services and Utilities}\+: There are a lot of convenience services and utilities that are provided to developers. Refer to the \hyperlink{platform_page_mod_dev_other_services}{Framework Services and Utilities} section for more details.
+\end{DoxyItemize}\hypertarget{platform_page_platform_blackboard}{}\subsection{The Blackboard}\label{platform_page_platform_blackboard}
+The blackboard allows modules to communicate with each other and the UI. It has three main uses in Autopsy\+:
+\begin{DoxyItemize}
+\item Ingest modules can communicate with each other. For example, one module can calculate a M\+D5 hash of a file and post it to the blackboard. Then another module can retrieve the hash value from the blackboard and not need to calculate it again.
+\item The tree in the right-\/hand side of the UI uses the blackboard to populate its Results section. The bookmarks, hashset hits, etc. are all populated from Ingest modules that created blackboard entries.
+\item The report modules query the blackboard to identify what they should report on.
+\end{DoxyItemize}
+
+The blackboard is not unique to Autopsy. It is part of The Sleuth Kit datamodel and The Sleuth Kit Framework. In the name of reducing the amount of documentation that we need to maintain, we provide links here to those documentation sources.
+
+
+\begin{DoxyItemize}
+\item mod\+\_\+bbpage (\href{http://sleuthkit.org/sleuthkit/docs/jni-docs/4.3/mod_bbpage.html}{\tt http\+://sleuthkit.\+org/sleuthkit/docs/jni-\/docs/4.\+3/mod\+\_\+bbpage.\+html})
+\end{DoxyItemize}\hypertarget{platform_page_mod_dev_other_services}{}\subsection{Framework Services and Utilities}\label{platform_page_mod_dev_other_services}
+Autopsy provides services and utilities to make it easier to write modules. Unfortunately, the utilities and services are scattered in various packages. Below is a list of things commonly used in modules. If you don\textquotesingle{}t find something in here that you think should be a framework service, let us know and we\textquotesingle{}ll talk about adding it for other writers to benefit.
+
+
+\begin{DoxyItemize}
+\item File\+Manager\+: the org.\+sleuthkit.\+autopsy.\+casemodule.\+services.\+File\+Manager service provides an A\+PI to access any file in the case. You can access File\+Manager by calling org.\+sleuthkit.\+autopsy.\+casemodule.\+services.\+Services.\+get\+File\+Manager(). Data Source-\/level Ingest modules and Report modules typically use this service.
+\item Logging\+: the org.\+sleuthkit.\+autopsy.\+coreutils.\+Logger class can be used to log error and informational messages to the central Autopsy log file.
+\item Pop-\/up Windows\+: If you have a background task that needs the provide the user with feedback, you can use the org.\+sleuthkit.\+autopsy.\+coreutils.\+Message\+Notify\+Util.\+Notify.\+show() method to make a message in the lower right hand area.
+\item Module Settings\+: If you want to persist settings between invocations of Autopsy, you can use org.\+sleuthkit.\+autopsy.\+coreutils.\+Module\+Settings.
+\item Content Utilities\+: The org.\+sleuthkit.\+autopsy.\+datamodel.\+Content\+Utils class has utility methods to write files from Autopsy to local disk. Specifically the org.\+sleuthkit.\+autopsy.\+datamodel.\+Content\+Utils.\+write\+To\+File() method.
+\item Platform Utilities\+: The org.\+sleuthkit.\+autopsy.\+coreutils.\+Platform\+Util class allows you to save resources into the user folder and determine paths for the user folders. Specifically\+:
+\begin{DoxyItemize}
+\item Platform\+Util.\+extract\+Resource\+To\+User\+Config\+Dir()
+\item Platform\+Util.\+is\+Windows\+O\+S()
+\end{DoxyItemize}
+\item File Utilities\+: The org.\+sleuthkit.\+autopsy.\+coreutils.\+File\+Util class assists with creating and deleting folders, etc.
+\item Ingest\+Modules also have a class that provides additional services unique to their needs. See ingest\+\_\+modules\+\_\+services\+\_\+ingest. 
+\end{DoxyItemize}

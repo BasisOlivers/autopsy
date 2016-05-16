@@ -1,0 +1,161 @@
+\hypertarget{regression_test_page_regression_test_overview}{}\section{Overview}\label{regression_test_page_regression_test_overview}
+Autopsy uses Netbeans and Jelly testing framework for regression testing. Testing is driven by invoking UI actions via Jelly framework.
+
+Currently, Autopsy regression testing automates the following\+:
+
+
+\begin{DoxyItemize}
+\item creating a case
+\item adding an image
+\item configuring ingest
+\item running ingest
+\item generating an H\+T\+ML report
+\end{DoxyItemize}
+
+The tests can be invoked using ant regression-\/test
+
+There is a python script in Testing/script/regression.\+py that wraps around \char`\"{}ant regression-\/test\char`\"{} and runs a test for every disk image it finds.
+
+regression.\+py also does regression test result validation by comparing the test result with the golden standards for the image and comparing the H\+T\+ML report with the gold standard H\+T\+ML report.
+
+It is assumed that the steps detailed in the Building Autopsy from Source document have been completed, and that appropriate versions of the J\+DK, L\+I\+B\+E\+WF etc, are present on the system. Building Autopsy from Source can be accessed at\+: \href{https://github.com/sleuthkit/autopsy/blob/master/BUILDING.txt}{\tt https\+://github.\+com/sleuthkit/autopsy/blob/master/\+B\+U\+I\+L\+D\+I\+N\+G.\+txt}\hypertarget{regression_test_page_regression_test_setup}{}\section{Setting up regression testing}\label{regression_test_page_regression_test_setup}
+1) Install Cygwin
+
+Download and run the Cygwin setup, available at \begin{DoxyVerb}        http://www.cygwin.com/setup.exe
+\end{DoxyVerb}
+
+
+From the list of packages to install, select both Database and Python.
+
+2) Setting up regression.\+py
+
+If you are planning on running the script regularly (\char`\"{}./regression.\+py\char`\"{}), the input directory will be \begin{DoxyVerb}    autopsy/Testing/script/input
+\end{DoxyVerb}
+
+
+However, if you are planning on using the configuration file, you can change the input directory using the $<$indir$>$ tag.
+
+Ensure the following files are in the input directory, whether in the default location or set by the configuration file \begin{DoxyVerb}    notablehashes.txt-md5.idx
+    nsrl.txt-md5.idx
+    notablekeywords.xml
+\end{DoxyVerb}
+
+
+Place any images you would like to test in the input directory, and/or use the configuration file to point to image files directly using the $<$image$>$ tag. The input directory will be scanned for images even when the configuration file points to specific ones. Use the -\/i or --ignore command to prevent this.\hypertarget{regression_test_page_regression_test_running}{}\section{Running regression testing}\label{regression_test_page_regression_test_running}
+3) Running regression.\+py
+
+From the Cygwin terminal, navigate to \begin{DoxyVerb}autopsy/Testing/script
+\end{DoxyVerb}
+
+
+To run regression.\+py using the default settings, type \begin{DoxyVerb}./regression.py
+\end{DoxyVerb}
+
+
+By default this will
+
+
+\begin{DoxyItemize}
+\item Search for notablehashes.\+txt-\/md5.\+idx, nsrl.\+txt-\/md5.\+idx, and notablekeywords.\+xml in the ./input directory
+\item Search for any image files in the ./input directory and test them
+\item Compare the generated database and report to the gold standards
+\item Save Autopsy\+Errors.\+txt, which is a log of all Warnings and Exceptions thrown by Autopsy, in the output directory
+\item Save C\+S\+V.\+txt, which contains all important test detailes for each image delimited by a \char`\"{}$\vert$\char`\"{}, in the output directory
+\item Save Autopsy\+Test\+Case.\+html, which is a user-\/friendly information, warning, and command-\/line log of all the tests ran, in the output directory
+\item Delete the Solr index in the output directory to save drive space
+\end{DoxyItemize}
+
+Other commands can be issued by adding the following arguments to the script \begin{DoxyVerb}-r, --rebuild
+\end{DoxyVerb}
+ Rebuild the gold standards from the test results for each image. -\/i, --ignore Ignores the ./input directory when searching for files. Only use in combination with a configuration file. -\/u, --unallocated Ignores unallocated space when ingesting. Faster, but yields less accurate results. -\/k, --keep Keeps each image\textquotesingle{}s Solr index instead of deleting it. -\/v, --verbose Prints all Warnings and Exceptions after each ingest. -\/e, --exception When followed by a string, will print out all exceptions that occured that contain the string. Case sensitive. -\/l, --list Runs from a configuration file, which is given as a path to the file after the argument. -\/c, --continuous Runs the arguments from the configuration file in a loop until interrupted, must be used with -\/l.\hypertarget{regression_test_page_regression_test_config}{}\section{Running regression tests with a config file}\label{regression_test_page_regression_test_config}
+4) Running from a configuration file
+
+An X\+ML configuration file can be pointed to by using the -\/l or --list command as shown below \begin{DoxyVerb}./regression.py -l X:\path\to\file.xml
+\end{DoxyVerb}
+
+
+The configuration file has three possible tags, all of which are optional.
+
+$<$indir value=\char`\"{}\+X\+:\textbackslash{}path\textbackslash{}to\textbackslash{}input\textbackslash{}directory\char`\"{}$>$ Changes the default input directory to the one provided.
+
+$<$global\+\_\+csv value=\char`\"{}\+X\+:\textbackslash{}path\textbackslash{}to\textbackslash{}csv\textbackslash{}file.\+txt\char`\"{}$>$ Points to an optional C\+SV file to be added to, anywhere in the user\textquotesingle{}s filesystem.
+
+$<$image value=\char`\"{}\+X\+:\textbackslash{}path\textbackslash{}to\textbackslash{}image.\+img\char`\"{}$>$ Points to a specific image file to be tested. This tag can be used any number of times in the configuration file.
+
+Note\+: When running with a configuration file, all the default features of regression.\+py will still be enabled.
+
+Please see the example configuration file \begin{DoxyVerb}autopsy/Testing/script/config.xml
+\end{DoxyVerb}
+
+
+For more detail
+
+/section optional\+\_\+standards\+\_\+update O\+P\+T\+I\+O\+N\+AL\+: Update the standards databases
+
+From the Cygwin terminal, navigate to \begin{DoxyVerb}autopsy/Testing/script
+\end{DoxyVerb}
+
+
+run\+: \begin{DoxyVerb}./regression.py -r
+\end{DoxyVerb}
+
+
+The script will automatically delete pre-\/existing standards.\+db files and generate the updated ones in the proper locations (/script/gold/\{name of image\}).
+
+Running in -\/r will also generate a golden report file built from the image. Normal runs of regression.\+py compare their generated report against the golden one, and report any differences in the file, ignoring the timestamp.\hypertarget{regression_test_page_developers_note_regression_test}{}\section{Developers Notes\+: Jemmy and Regression\+Test.\+java}\label{regression_test_page_developers_note_regression_test}
+For additional details regarding setting up and using Jemmy, please see \begin{DoxyVerb}http://platform.netbeans.org/tutorials/nbm-test.html
+http://wiki.netbeans.org/Writing_JellyTools_Tests_Guide
+\end{DoxyVerb}
+
+
+The Jemmy UI framework includes elements such as buttons, frames, dialog boxes and wizards. In order to manipulate these elements programmatically, the associated Container\+Operators must be used. Regression\+Test.\+java makes use of the following major operators\+: \begin{DoxyVerb}JButtonOperator
+JDialogOperator
+nbDialogOperator
+JTableOperator
+JFileChooserOperator
+WizardOperator
+\end{DoxyVerb}
+
+
+Wizard\+Operators are for elements that implement the Wizard interface. Wizards specifically have back and next buttons. A Wizard\+Operator can be created by \begin{DoxyVerb}WizardOperator wo = new WizardOperator(String title);
+\end{DoxyVerb}
+
+
+Where title is the display title of the wizard you wish to manipulate.
+
+In order to use any Jemmy UI element, it must first be found. There are a number of ways to do this, but the most common involves searching by the display name of the element in question. Finding elements is a function of that elements Container\+Operator. For example, to find a J\+Dialog whose display name is the string \char`\"{}\+Hash Database Configuration\char`\"{}, the following code might be used\+: \begin{DoxyVerb}JDialog hashMainDialog =  JDialogOperator.waitJDialog("Hash Database Configuration", false, false);
+\end{DoxyVerb}
+
+
+The two booleans are for searching the exact string including substrings, and for searching case sensitively.
+
+Note that the method used is called \textquotesingle{}.wait\+J\+Dialog\textquotesingle{}, and not \textquotesingle{}.find\+J\+Dialog\textquotesingle{}. This is an important distinction regarding thoroughness of the find, but the functionality of the same. Refer to the link on Jemmy above for greater detail.
+
+Once you an element has been located, it can be operated upon by creating a new Container\+Operator, with the element as the only argument\+: \begin{DoxyVerb}JDialogOperator hashMainDialogOperator = new JDialogOperator(hashMainDialog);
+\end{DoxyVerb}
+
+
+Selecting the main window\+:
+
+In order to select the main window, in this case, the general Autospy frame, the Main\+Window\+Operator must be used. A Main\+Window\+Operator takes no arguments and is created as follows\+: \begin{DoxyVerb}MainWindowOperator mwo = MainWindowOperator.getDefault();
+\end{DoxyVerb}
+
+
+For further reference regarding Container\+Operators, please see \begin{DoxyVerb}http://www.jarvana.com/jarvana/view/org/netbeans/jemmy/2.2.7.5/jemmy-2.2.7.5-javadoc.jar!/org/netbeans/jemmy/operators/ContainerOperator.html
+\end{DoxyVerb}
+
+
+When an element has been selected, the individual components may be manipulated with Container\+Operators. To select a button, use the code below, where cont is one of the Container\+Operators from above, text is the text displayed on the button, and index is the button\textquotesingle{}s order if there are multiple with the same name (i.\+e. if there are three buttons labeled �preview�, the first\textquotesingle{}s index is 0, then 1, then 2).
+
+Jbutton\+Operator jbo = new Jbutton\+Operator(\+Container\+Operator cont, String text, int index);
+
+There are many others elements and operators, such as Jcheck\+Box\+Operator, Jfile\+Chooser\+Operator, Jtext\+Field\+Operator, etc. See \href{http://www.jarvana.com/jarvana/view/org/netbeans/jemmy/2.2.7.5/jemmy-2.2.7.5-javadoc.jar!/org/netbeans/jemmy/operators/JComponentOperator.html}{\tt http\+://www.\+jarvana.\+com/jarvana/view/org/netbeans/jemmy/2.\+2.\+7.\+5/jemmy-\/2.\+2.\+7.\+5-\/javadoc.\+jar!/org/netbeans/jemmy/operators/\+J\+Component\+Operator.\+html} for more. Please see their individual Java\+Docs for action commands that push buttons, write in forms, etc.
+
+If an element cannot be grabbed using a Container\+Operator, a temporary workaround is to invoke the element action\+: \begin{DoxyVerb}new Action(String menuPath, String popupPath).perform();
+\end{DoxyVerb}
+
+
+where menu\+Path is the path through the File menu to said action and popup is the path through the popup menu (which is null since it is unsupported).
+
+For more on Actions, see \begin{DoxyVerb}http://bits.netbeans.org/dev/javadoc/org-netbeans-modules-jellytools-platform/org/netbeans/jellytools/actions/Action.html\end{DoxyVerb}
+ 

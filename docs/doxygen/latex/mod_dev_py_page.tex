@@ -1,0 +1,85 @@
+This page describes the basic concepts and setup that are needed for all types of Python modules. It is not needed if you are doing only Java module development.
+
+Autopsy uses Jython (\href{http://www.jython.org}{\tt http\+://www.\+jython.\+org}) to enable Python scripting. Jython looks like Python and gets converted into Java byte code and runs on the J\+VM. Its biggest limitations are\+:
+\begin{DoxyItemize}
+\item Limited to Python 2.\+7 (as of Autopsy 3.\+1.\+3)
+\item Can\textquotesingle{}t use Python libraries that have native code
+\item You can\textquotesingle{}t easily make U\+Is. This means that you can\textquotesingle{}t make content viewer modules or easily have configuration settings for your ingest modules. We have done it, but it is tedious compared to using a Java tool to place UI widgets in various places.
+\end{DoxyItemize}
+
+Using it is very easy though in Autopsy and it allows you to access all of the Java services and classes that you need.
+
+To develop a module, you should follow this section to get your environment setup and then read the later sections on the different types of modules.
+
+There are also a set of tutorials that Basis Technology published on their blog. While not as thorough as this documentation, they are an easy introduction to the general ideas.
+
+
+\begin{DoxyItemize}
+\item File Ingest Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-1-the-file-ingest-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/1-\/the-\/file-\/ingest-\/module/}
+\item Data Source Ingest Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-2-the-data-source-ingest-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/2-\/the-\/data-\/source-\/ingest-\/module/}
+\item Report Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-3-the-report-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/3-\/the-\/report-\/module/}
+\end{DoxyItemize}\hypertarget{mod_dev_py_page_mod_dev_py_setup}{}\section{Basic Setup}\label{mod_dev_py_page_mod_dev_py_setup}
+-\/\+You don\textquotesingle{}t really need anything to develop a python Autopsy module except for the standard Autopsy and your favorite text editor. We recommend IntelliJ I\+D\+EA or the Jython plug-\/in to Net\+Beans.
+
+To install Net\+Beans\textquotesingle{} plug-\/in\+:
+\begin{DoxyEnumerate}
+\item Download and install the Jython 2.\+7 installer to desired location (\href{http://www.jython.org/downloads.html}{\tt http\+://www.\+jython.\+org/downloads.\+html}).
+\item Download Net\+Beans Python plug-\/in zip file (\href{http://plugins.netbeans.org/plugin/56795/python4netbeans802}{\tt http\+://plugins.\+netbeans.\+org/plugin/56795/python4netbeans802}).
+\item Unpack the content (.nbm files) of the zip file to the desired location.
+\item In Net\+Beans go to Tools-\/$>$Plugins. In Downloaded tab, click on Add Plugins, then choose extracted .nbm files.
+\item Setup Jython path from Tools-\/$>$Python Platforms, click on new, then choose Jython.\+exe (usually in C\+:/\+Program files/\+Jython2.\+7/bin/)
+\end{DoxyEnumerate}
+
+To install IntelliJ I\+D\+EA + Python plug-\/in\+:
+\begin{DoxyEnumerate}
+\item Download java J\+DK depending on platform. Install to desired location (\href{http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html}{\tt http\+://www.\+oracle.\+com/technetwork/java/javase/downloads/jdk8-\/downloads-\/2133151.\+html}).
+\item Download and install I\+D\+EA Community Edition to desired location (\href{https://www.jetbrains.com/idea/download/}{\tt https\+://www.\+jetbrains.\+com/idea/download/}).
+\item Open I\+D\+EA and choose desired UI theme. Continue with default settings.
+\item Choose to either create a new empty project or open an existing one.
+\item It will ask you to modify Project Structure. Leave that for now and click OK.
+\item In File-\/$>$Settings. Go to Plugins tab and click on Install Jet\+Brains Plugin.
+\item Look for and install Python Community Edition. After the installation, it will ask you restart. Restart I\+D\+EA.
+\item In File-\/$>$Project Structure. In Project tab, Project S\+DK, click on New and choose IntelliJ Platform Plugin S\+KD.
+\item It will ask you to configure the J\+KD first, click OK and navigate to the J\+DK folder location and click OK.
+\item After that it will ask you to choose the IntelliJ Platform Plugin S\+KD. It will most likely take you to it\textquotesingle{}s locaation automatically. (Usually in C\+: Files (x86) I\+D\+EA Community Edition 14.\+1.\+5)
+\item In the drop down menu next to New button, choose IntelliJ I\+D\+EA Community Edition.
+\item Still in Project S\+Tructure, In Libraries tab, click on \textquotesingle{}+\textquotesingle{} to add new libraries. Choose desired autopsy modules (usually in C\+: Files\textbackslash{}\+Autopsy-\/3.\+1.\+3 if you have executable version).
+\end{DoxyEnumerate}\hypertarget{mod_dev_py_page_mod_dev_py_create}{}\section{Creating a Basic Python Module}\label{mod_dev_py_page_mod_dev_py_create}
+\hypertarget{mod_dev_py_page_mod_dev_py_create_dir}{}\subsection{Packaging Structure}\label{mod_dev_py_page_mod_dev_py_create_dir}
+Autopsy requires that you put all of your Python modules into a single folder. This prevents naming collisions with other modules. You can name the folder what ever you want. You\textquotesingle{}ll need to put all of the libraries that you depend on in there too.
+
+You will need to copy this folder into Autopsy\textquotesingle{}s Python script folder. Autopsy will scan this folder each time it looks for modules. You can find the location of this folder from the \char`\"{}\+Tools -\/$>$ Python Scripts\char`\"{} menu item.\hypertarget{mod_dev_py_page_mod_dev_py_create_create}{}\subsection{Module Creation}\label{mod_dev_py_page_mod_dev_py_create_create}
+We have a growing number of sample Python scripts and therefore the easiest starting point for any Python script is probably to start with one of the public domain examples. This approach is a bit different than what you\textquotesingle{}d find with Java because the Java environment auto-\/creates the modules more.
+
+This is the basic approach\+:
+
+
+\begin{DoxyEnumerate}
+\item Create a folder referenced in \hyperlink{mod_dev_py_page_mod_dev_py_create_dir}{Packaging Structure}.
+\item Copy one of the sample modules from the github repository (\href{https://github.com/sleuthkit/autopsy/tree/develop/pythonExamples}{\tt https\+://github.\+com/sleuthkit/autopsy/tree/develop/python\+Examples})
+\item Edit the sample module by looking for \char`\"{}\+T\+O\+D\+O\char`\"{} references.
+\end{DoxyEnumerate}
+
+That\textquotesingle{}s it. Autopsy will find the module each time it needs it and you can make updates without having to restart Autopsy each time.\hypertarget{mod_dev_py_page_mod_dev_py_library}{}\subsection{Using External Libraries}\label{mod_dev_py_page_mod_dev_py_library}
+If you need to bring in a library that is not part of the standard Jython distribution, then do the following\+:
+
+
+\begin{DoxyEnumerate}
+\item Copy the library file or folder into the folder that you made in mod\+\_\+dev\+\_\+py. For example, you may copy in folder called \textquotesingle{}needed\+Lib\textquotesingle{} that has a file named mylib.\+py in it. The end result be a folder structure such as my\+Module\+Folder/needed\+Lib/mylib.\+py.
+\item In your Python code, if you needed a class from mylib, then you\textquotesingle{}d have a line such as\+: 
+\begin{DoxyCode}
+1 \textcolor{keyword}{from} neededLib.mylib \textcolor{keyword}{import} neededClass
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+Jython will look in the module\textquotesingle{}s folder to resolve these libraries.
+
+If you bring in a library that uses native code, then you will get a runtime error when you try to load it.\hypertarget{mod_dev_py_page_mod_dev_py_misc}{}\subsection{Minor Gotchas}\label{mod_dev_py_page_mod_dev_py_misc}
+This section lists some helpful tips that we have found. These are all now in the sample modules, so refer to those for examples and a place to copy and paste from.
+\begin{DoxyItemize}
+\item We haven\textquotesingle{}t found a good way to debug while running inside of Autopsy. So, logging becomes critical. You need to go through a bunch of steps to get the logger to display your module name. See the sample module for a log() method that does all of this for you.
+\item When you name the file with your Python module in it, restrict its name to letters, numbers, and underscore (\+\_\+).
+\item Python modules using external libraries which load native code (Sci\+Py, Num\+Py, etc.) are currently N\+OT supported. Runtime\+Error will be thrown.
+\end{DoxyItemize}\hypertarget{mod_dev_py_page_mod_dev_py_distribute}{}\section{Distribution}\label{mod_dev_py_page_mod_dev_py_distribute}
+To distribute and share your Python module, Z\+IP up the folder and send it around. Other users of the module should expand the Z\+IP file and drop the folder into their Autopsy Python folder. 

@@ -1,0 +1,46 @@
+\subsubsection*{Overview}
+
+\href{http://www.sleuthkit.org/autopsy/}{\tt Autopsy} has been designed as a digital forensics platform to incorporate third-\/party modules (either open or closed source). This document is for developers who want to write add-\/on modules or modify the internal Autopsy framework.
+
+If you are a user and are looking for documentation on how to use Autopsy, refer to the \href{http://sleuthkit.org/autopsy/docs/user-docs/}{\tt User Docs}.
+
+If these pages don\textquotesingle{}t answer your question, then send the question to the \href{https://lists.sourceforge.net/lists/listinfo/sleuthkit-developers}{\tt Sleuth Kit Developer\textquotesingle{}s List}.
+
+\subsubsection*{Writing Python or Java Modules}
+
+If you want to write Java or Python modules, then there are some tutorials and detailed pages in this document. The Python tutorials include\+:
+\begin{DoxyItemize}
+\item File Ingest Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-1-the-file-ingest-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/1-\/the-\/file-\/ingest-\/module/}
+\item Data Source Ingest Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-2-the-data-source-ingest-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/2-\/the-\/data-\/source-\/ingest-\/module/}
+\item Report Modules\+: \href{http://www.basistech.com/python-autopsy-module-tutorial-3-the-report-module/}{\tt http\+://www.\+basistech.\+com/python-\/autopsy-\/module-\/tutorial-\/3-\/the-\/report-\/module/}
+\end{DoxyItemize}
+
+This document contains the following pages\+:
+\begin{DoxyItemize}
+\item \hyperlink{platform_page}{Module Development Overview}
+\item Setup
+\begin{DoxyItemize}
+\item \hyperlink{mod_dev_page}{Java Development Setup}
+\item \hyperlink{mod_dev_py_page}{Python Development Setup}
+\end{DoxyItemize}
+\item The following are based on specific types of modules\+:
+\begin{DoxyItemize}
+\item \hyperlink{mod_ingest_page}{Developing Ingest Modules}
+\item \hyperlink{mod_report_page}{Developing Report Modules}
+\item \hyperlink{mod_content_page}{Developing Content Viewer Modules}
+\item \hyperlink{mod_result_page}{Developing Result Viewer Modules}
+\end{DoxyItemize}
+\item \hyperlink{adv_dev_page}{Advanced Development Concepts}
+\item \href{http://sleuthkit.org/sleuthkit/docs/jni-docs/4.3/query_database_page.html}{\tt Query the Database}
+\item \hyperlink{mod_mobile_page}{Mobile Forensics}
+\end{DoxyItemize}
+
+\subsubsection*{Modifying Autopsy}
+
+These pages are more detailed if you want to modify Autopsy code instead of writing add-\/on modules.
+\begin{DoxyItemize}
+\item \hyperlink{workflow_page}{General Workflow and Design}
+\item \hyperlink{regression_test_page}{Regression Testing}
+\item \hyperlink{native_page}{Native Library Loading}
+\item \hyperlink{mod_debugTsk_page}{Debugging The Sleuth Kit} 
+\end{DoxyItemize}

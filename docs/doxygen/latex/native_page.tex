@@ -1,0 +1,22 @@
+\hypertarget{native_page_native_overview}{}\section{Overview}\label{native_page_native_overview}
+This section outlines how Autopsy distributes native libraries and provides pointers for you if you want to distribute native libraries with your modules.
+
+The easiest guidance (from \href{http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/doc-files/api.html#jni}{\tt http\+://bits.\+netbeans.\+org/dev/javadoc/org-\/openide-\/modules/org/openide/modules/doc-\/files/api.\+html\#jni}) is to put the native library in the {\ttfamily release/modules/lib} folder in your project. Or, in architecure-\/specific locations if your module is multi-\/platform. See the above page for examples. They will get copied from that location to somewhere that will be searched when Autopsy does a {\ttfamily System.\+load\+Library()}.\hypertarget{native_page_native_autopsy}{}\section{Autopsy Native Libraries}\label{native_page_native_autopsy}
+Autopsy has three types of native libraries that it depends on (and ships with)\+:
+\begin{DoxyItemize}
+\item The Sleuth Kit J\+NI Library(libtsk\+\_\+jni)
+\begin{DoxyItemize}
+\item This is embedded inside of the {\ttfamily Tsk\+\_\+\+Data\+Model.\+jar} file. It gets copied into there by the datamodel ant target.
+\item At runtime, java code extracts the file from the jar into a local temp folder and launches it in the Library\+Utils.\+load\+Sleuthkit\+J\+N\+I() method.
+\end{DoxyItemize}
+\item The libraries that libtsk\+\_\+jni depends on that are not the Visual Studio runtime dlls that were used to build libtsk\+\_\+jni
+\begin{DoxyItemize}
+\item These are copied by Autopsy from T\+S\+K\+\_\+\+H\+O\+ME to a folder inside of Autopsy at compile time.
+\item They are loaded by Autopsy in the Installer.\+load\+Dyn\+Libraries() method. This is because if we wait until {\ttfamily libtsk\+\_\+jni} needs them, then they will be located based on Windows search paths and the Net\+Beans paths are not in that set. So, we launch them before {\ttfamily libtsk\+\_\+jni} needs them and from within Autopsy so that it uses the Autopsy search paths.
+\end{DoxyItemize}
+\item The Visual Studio runtime dlls that were used to build libtsk\+\_\+jni
+\begin{DoxyItemize}
+\item These are only copied by Autopsy when a Z\+IP folder is created of the project (on the theory that the local system doesn\textquotesingle{}t need copies of them because it is already building T\+SK). There is code in build-\/windows.\+xml and build-\/unix.\+xml to copy the external libraries (from thidrparty/crt) into their respective locations in the Z\+IP file.
+\item N\+O\+TE\+: If other versions of the runtimes need to be included (because of the other 3rd party libraries), then they should be treated like other 3rd party libraries and copied at compile time. 
+\end{DoxyItemize}
+\end{DoxyItemize}

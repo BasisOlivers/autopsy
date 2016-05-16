@@ -1,0 +1,37 @@
+\hypertarget{mod_content_page_content_overview}{}\section{Overview}\label{mod_content_page_content_overview}
+Data\+Content\+Viewer modules exist in the lower-\/right area of the default Autopsy interface, as shown below.
+
+
+
+They can analyze a single file that the user has identified from either browsing directories, keyword search, etc. It doesn\textquotesingle{}t matter to these modules how the user found the file. These modules allow the user to view the file in various ways. The default program comes with a hex and strings view and other modules exist to display pictures and videos as images instead of just a series of bytes. You would make a new Data\+Content\+Viewer if you have a unique way of displaying a single file. These modules are passed in a reference to a specific file to display.\hypertarget{mod_content_page_content_nb}{}\section{Net\+Beans Module Configuration}\label{mod_content_page_content_nb}
+The rest of the document assumes that you have already created your Net\+Beans module, as outlined in \hyperlink{mod_dev_page_mod_dev_module}{Creating a Basic Net\+Beans Module}.
+
+Data\+Content\+Viewer modules will have additional Net\+Beans dependencies. Right click on the module, choose \char`\"{}\+Properties\char`\"{} -\/$>$ \char`\"{}\+Libraries\char`\"{} -\/$>$ \char`\"{}\+Module Dependencies\char`\"{}. Add \char`\"{}\+Lookup A\+P\+I\char`\"{} and \char`\"{}\+Nodes A\+P\+I\char`\"{}.\hypertarget{mod_content_page_content_mod}{}\section{Module Development}\label{mod_content_page_content_mod}
+You will need a class that implements org.\+sleuthkit.\+autopsy.\+corecomponentinterfaces.\+Data\+Content\+Viewer and you will need a J\+Panel to display. We have found the best way to do this is to make a class in the Net\+Beans I\+DE that is a \char`\"{}\+J\+Panel Form\char`\"{}. This will then allow you to use the UI builder within the Net\+Beans I\+DE. After Net\+Beans makes the class for you, then have it implement Data\+Content\+Viewer. Net\+Beans will of course complain about missing methods and will provide default implementations for them if you click on the error messages in the UI. Refer to the documentation in org.\+sleuthkit.\+autopsy.\+corecomponentinterfaces.\+Data\+Content\+Viewer on what each method should do.
+
+Autopsy will find your module using the Net\+Beans Lookup infrastructure. To be found, you will need to register as a service provider for Data\+Content\+Viewer.\+class by annotating your class as follows\+:
+
+
+\begin{DoxyCode}
+@ServiceProvider(service = DataContentViewer.class)
+public class DataContentViewerString extends javax.swing.JPanel implements DataContentViewer \{
+...
+\end{DoxyCode}
+
+
+If you get errors about not knowing about Service\+Providers and such, ensure that you configured your Net\+Beans module to depend on the Nodes and Lookup A\+P\+Is as outlined in the previous section.\hypertarget{mod_content_page_content_examples}{}\section{Example Modules}\label{mod_content_page_content_examples}
+The org.\+sleuthkit.\+autopsy.\+examples.\+Sample\+Content\+Viewer class is a very simple module that you can use as a starting point. There are also modules, such as org.\+sleuthkit.\+autopsy.\+corecomponents.\+Data\+Content\+Viewer\+Hex and org.\+sleuthkit.\+autopsy.\+corecomponents.\+Data\+Content\+Viewer\+Media that are real modules, but they are more complex to follow since they have paging and other UI widgets in them.\hypertarget{mod_content_page_content_hints}{}\section{Hints}\label{mod_content_page_content_hints}
+\hypertarget{mod_content_page_content_hints_objects}{}\subsection{Getting Content}\label{mod_content_page_content_hints_objects}
+Many of the methods get passed in a Node object as argument. What you really want is one of the Autopsy data model objects from org.\+sleuthkit.\+autopsy.\+datamodel. You get access to these objects from the Net\+Beans Lookup.
+
+If you only want to analyze files, then you want to get the Abstract\+File object from it using\+: 
+\begin{DoxyCode}
+AbstractFile file = node.getLookup().lookup(AbstractFile.class);
+\end{DoxyCode}
+ If file is null, then it means that the node isn\textquotesingle{}t for a Abstract\+File (perhaps its of a full volume). Once you have the Abstract\+File object, you can get the file\textquotesingle{}s name, content, and metadata.
+
+If you want to get whatever is passed in, then you can use the more generic lookup\+: 
+\begin{DoxyCode}
+Content content = node.getLookup().lookup(Content.class);
+\end{DoxyCode}
+ This will get you all types of data model types, but you will not have access to the more specific getter methods. 

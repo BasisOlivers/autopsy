@@ -1,0 +1,291 @@
+\hypertarget{mod_ingest_page_ingest_modules_getting_started}{}\section{Getting Started}\label{mod_ingest_page_ingest_modules_getting_started}
+This page describes how to develop ingest modules using either Java or Python (Jython). It assumes you have already set up your development environment as described in \hyperlink{mod_dev_page}{Java Development Setup} or \hyperlink{mod_dev_py_page}{Python Development Setup}.\hypertarget{mod_ingest_page_ingest_module_types}{}\section{Ingest Module Types}\label{mod_ingest_page_ingest_module_types}
+Ingest modules analyze data from a data source (e.\+g., a disk image or a folder of logical files). There are two types of ingest modules in Autopsy\+:
+
+
+\begin{DoxyItemize}
+\item Data-\/source-\/level ingest modules
+\item File-\/level ingest modules
+\end{DoxyItemize}
+
+The difference between these two types of modules is what gets passed in to them\+:
+\begin{DoxyItemize}
+\item Data source-\/level ingest modules get passed in a reference to a data source and it is up to the module to search for the files that it wants to analyze.
+\item File-\/level ingest modules are passed in a reference to each file, one at a time, and it analyzes the file that gets passed in.
+\end{DoxyItemize}
+
+Here are some guidelines for choosing the type of your ingest module\+:
+
+
+\begin{DoxyItemize}
+\item Your module should be a data-\/source-\/level ingest module only if the following are true\+:
+\begin{DoxyItemize}
+\item It needs to retrieve and analyze only a small number of files.
+\item It can find the files by name or other metadata in the database.
+\item It does not depend on results from other file-\/level ingest modules.
+\item It does not need access to the contents of Z\+IP and other archive files. For example, our Windows registry analysis is done as a data source-\/level ingest module because it can query for the registry hives and process the small number of files that are found.
+\end{DoxyItemize}
+\item If your needs are not met by a data source-\/level ingest module, then it should be a file-\/level ingest module.
+\end{DoxyItemize}
+
+As you will learn a little later in this guide, it is possible to make an ingest module that has both file-\/level and data-\/source level capabilities. You would do this when you need to work at both levels to get all of your analysis done. The modules in such a pair will be enabled or disabled together and will have common per ingest job and global settings.
+
+The text below will refer to example code in the org.\+sleuthkit.\+autopsy.\+examples package. The sample modules don\textquotesingle{}t do anything particularly useful, but they can serve as templates for developing your own ingest modules.\hypertarget{mod_ingest_page_ingest_modules_lifecycle}{}\section{Ingest Module Life Cycle}\label{mod_ingest_page_ingest_modules_lifecycle}
+Before we dive into the details of creating a module, it is important to understand the life cycle of the module. Note that this life cycle is much different for Autopsy 3.\+1 and newer modules compared to Autopsy 3.\+0 modules. This section only talks about 3.\+1 and newer modules.
+
+You will need to implement at least two classes to make an ingest module\+:
+\begin{DoxyEnumerate}
+\item A factory class that will be created when Autopsy starts and will provide configuration panels to Autopsy and will create instances of your ingest module.
+\item An ingest module class that will be instantiated by the factory when the ingest modules are run. A new instance of this class will be created for each ingest thread.
+\end{DoxyEnumerate}
+
+Here is an example sequence of events. Details will be provided below.
+\begin{DoxyEnumerate}
+\item User launches Autopsy and it looks for classes that implement the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory interface.
+\item Autopsy finds and creates an instance of your Foo\+Ingest\+Module\+Factory class.
+\item User adds a disk image.
+\item Autopsy presents the list of available ingest modules to the user and uses the utility methods from Foo\+Ingest\+Module\+Factory class to get the module\textquotesingle{}s name, description, and configuration panels.
+\item User enables your module (and others).
+\item Autopsy uses Foo\+Ingest\+Module\+Factory to create two instances of Foo\+Ingest\+Module (Autopsy is using two threads to process the files).
+\item Autopsy calls Foo\+Ingest\+Module.\+start\+Up() on each thread and then calls Foo\+Ingest\+Module.\+process() to pass in each file.
+\end{DoxyEnumerate}\hypertarget{mod_ingest_page_ingest_modules_implementing_ingestmodulefactory_basic}{}\section{Creating a Basic Ingest Module}\label{mod_ingest_page_ingest_modules_implementing_ingestmodulefactory_basic}
+\hypertarget{mod_ingest_page_ingest_modules_implementing_basic_factory}{}\subsection{Basic Ingest Module Factory}\label{mod_ingest_page_ingest_modules_implementing_basic_factory}
+The first step to write an ingest module is to make its factory. There are three general types of things that a factory does\+:
+\begin{DoxyEnumerate}
+\item Provides basic information such as the module\textquotesingle{}s name, version, and description. (required)
+\item Creates ingest modules. (required)
+\item Provides panels so that the user can configure the module. (optional)
+\end{DoxyEnumerate}
+
+This section covers the required parts of a basic factory so that we can make the ingest module. A later section (\hyperlink{mod_ingest_page_ingest_modules_making_options}{User Options and Configuration}) covers how you can use the factory to provide options to the user.
+
+To make writing a simple factory easier, Autopsy provides an adapter class that implements the \char`\"{}optional\char`\"{} methods in the interface. Our basic factory will use the adapter.
+
+
+\begin{DoxyEnumerate}
+\item Make a factory class by either\+:
+\begin{DoxyItemize}
+\item Copy and pasting the sample code from org.\+sleuthkit.\+autopsy.\+examples.\+Sample\+Ingest\+Module\+Factory (Java) or org.\+sleuthkit.\+autopsy.\+examples.\+ingestmodule.\+py.
+\item Manually define a new class that extends (Java) or inherits (Jython) org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory\+Adapter. If you are using Java, Net\+Beans will likely complain that you have not implemented the necessary methods and you can use its \char`\"{}hints\char`\"{} to automatically generate stubs for them.
+\end{DoxyItemize}
+\item Update and create the needed methods using the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory interface documentation. You can also use the sample code mentioned above for examples of what the methods should do if you did not already copy and paste them.
+\item If you are using Java, import org.\+openide.\+util.\+lookup.\+Service\+Provider and add a dependency on the Net\+Beans Lookup A\+PI module to the Net\+Beans module that contains your ingest module. Then add a Net\+Beans Service\+Provider annotation so that the factory is found at run time\+: 
+\begin{DoxyCode}
+@ServiceProvider(service = IngestModuleFactory.class)
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+At this point, when you add a data source to an Autopsy case, you should see the module in the list of ingest modules. If you don\textquotesingle{}t see it, double check that you either implemented org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory or extended or inherited org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory\+Adapter. If using Java, make sure that you added the service provider annotation.\hypertarget{mod_ingest_page_ingest_modules_implementing_ingestmodule}{}\subsection{Common Concepts of Ingest Modules}\label{mod_ingest_page_ingest_modules_implementing_ingestmodule}
+Before we cover the specific interfaces of the two different types of modules, let\textquotesingle{}s talk about some common things.
+\begin{DoxyItemize}
+\item They both have a start\+Up() method and the expectation is that if there is any error in setting up the module, then they will throw an exception from this method so that ingest can be immediately stopped before analysis begins and the user can fix the problem.
+\item Autopsy will call a module from only a single thread. It may make several threads, but it will make an instance of the module for each thread. You do not need to worry about thread safety unless you are using static variables or other kinds of variables that would be shared among multiple instances of the module.
+\end{DoxyItemize}\hypertarget{mod_ingest_page_ingest_modules_implementing_datasourceingestmodule}{}\subsection{Creating a Data Source-\/level Ingest Module}\label{mod_ingest_page_ingest_modules_implementing_datasourceingestmodule}
+To create a data source ingest module\+:
+\begin{DoxyEnumerate}
+\item Create the ingest module class by either\+:
+\begin{DoxyItemize}
+\item Copy and paste the sample modules from\+:
+\begin{DoxyItemize}
+\item Java\+: Core/src/org/sleuthkit/autopsy/examples/\+Sample\+Data\+Source\+Ingest\+Module.\+java
+\item Python\+: python\+Examples/data\+Source\+Ingest\+Module.\+py (\href{https://github.com/sleuthkit/autopsy/tree/develop/pythonExamples}{\tt https\+://github.\+com/sleuthkit/autopsy/tree/develop/python\+Examples})
+\end{DoxyItemize}
+\item Or the manual approach is to define a new class that implements (Java) or inherits (Jython) org.\+sleuthkit.\+autopsy.\+ingest.\+Data\+Source\+Ingest\+Module. If you are using Java, the Net\+Beans I\+DE will complain that you have not implemented one or more of the required methods. You can use its \char`\"{}hints\char`\"{} to automatically generate stubs for the missing methods.
+\end{DoxyItemize}
+\item Configure your factory class to create instances of the new ingest module class. To do this, you will need to change the is\+Data\+Source\+Ingest\+Module\+Factory() method to return true and have the create\+Data\+Source\+Ingest\+Module() method return a new instance of your ingest module. Both of these methods have default \char`\"{}no-\/op\char`\"{} implementations in the Ingest\+Module\+Factory\+Adapter that we used. Your factory should have code similar to this Java code\+:
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}
+@Override
+\textcolor{keyword}{public} \textcolor{keywordtype}{boolean} isDataSourceIngestModuleFactory() \{
+    \textcolor{keywordflow}{return} \textcolor{keyword}{true};
+\}
+
+@Override
+\textcolor{keyword}{public} DataSourceIngestModule createDataSourceIngestModule(IngestModuleIngestJobSettings ingestOptions) \{
+    \textcolor{keywordflow}{return} \textcolor{keyword}{new} FooDataSourceIngestModule();  \textcolor{comment}{// replace this class name with the name of your class}
+\}
+\end{DoxyCode}
+
+\begin{DoxyEnumerate}
+\item Use this page, the sample, and the documentation for the org.\+sleuthkit.\+autopsy.\+ingest.\+Data\+Source\+Ingest\+Module interfaces to implement the start\+Up() and process() methods.
+\begin{DoxyItemize}
+\item org.\+sleuthkit.\+autopsy.\+ingest.\+Data\+Source\+Ingest\+Module.\+start\+Up() is where any initialiation occurs. If your module has a critical failure and will not be able to run, your start\+Up method should throw an Ingest\+Module\+Exception to stop ingest.
+\item org.\+sleuthkit.\+autopsy.\+ingest.\+Data\+Source\+Ingest\+Module.\+process() is where all of the work of a data source ingest module is done. It will be called exactly once. The process() method receives a reference to an org.\+sleuthkit.\+datamodel.\+Content object and an org.\+sleuthkit.\+autopsy.\+ingest.\+Data\+Source\+Ingest\+Module\+Progress object. The former is a representation of the data source. The latter should be used by the module instance to report progress as it does its potentially long-\/running processing. To be a good citizen within Autopsy, the module should also periodically call org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Job\+Context.\+is\+Job\+Cancelled() and break off processing if the ingest is canceled.
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+Note that data source ingest modules must find the files that they want to analyze. The best way to do that is using one of the find\+Files() methods of the org.\+sleuthkit.\+autopsy.\+casemodule.\+services.\+File\+Manager class. See \hyperlink{platform_page_mod_dev_other_services}{Framework Services and Utilities} for more details.\hypertarget{mod_ingest_page_ingest_modules_implementing_fileingestmodule}{}\subsection{Creating a File Ingest Module}\label{mod_ingest_page_ingest_modules_implementing_fileingestmodule}
+To create a file ingest module\+: To create a data source ingest module\+:
+\begin{DoxyEnumerate}
+\item Create the ingest module class by either\+:
+\begin{DoxyItemize}
+\item Copy and paste the sample modules from\+:
+\begin{DoxyItemize}
+\item Java\+: Core/src/org/sleuthkit/autopsy/examples/\+Sample\+File\+Ingest\+Module.\+java
+\item Python\+: python\+Examples/file\+Ingest\+Module.\+py (\href{https://github.com/sleuthkit/autopsy/tree/develop/pythonExamples}{\tt https\+://github.\+com/sleuthkit/autopsy/tree/develop/python\+Examples})
+\end{DoxyItemize}
+\item Or the manual approach is to define a new class that implements (Java) or inherits (Jython) org.\+sleuthkit.\+autopsy.\+ingest.\+File\+Ingest\+Module. If you are using Java, the Net\+Beans I\+DE will complain that you have not implemented one or more of the required methods. You can use its \char`\"{}hints\char`\"{} to automatically generate stubs for the missing methods.
+\end{DoxyItemize}
+\item Configure your factory class to create instances of the new ingest module class. To do this, you will need to change the is\+File\+Ingest\+Module\+Factory() method to return true and have the create\+File\+Ingest\+Module() method return a new instance of your ingest module. Both of these methods have default \char`\"{}no-\/op\char`\"{} implementations in the Ingest\+Module\+Factory\+Adapter that we used. Your factory should have code similar to this Java code\+:
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}
+@Override
+\textcolor{keyword}{public} \textcolor{keywordtype}{boolean} isFileIngestModuleFactory() \{
+    \textcolor{keywordflow}{return} \textcolor{keyword}{true};
+\}
+
+@Override
+\textcolor{keyword}{public} FileIngestModule createFileIngestModule(IngestModuleIngestJobSettings ingestOptions) \{
+    \textcolor{keywordflow}{return} \textcolor{keyword}{new} FooFileIngestModule(); \textcolor{comment}{// replace this class name with the name of your class}
+\}
+\end{DoxyCode}
+
+
+
+\begin{DoxyEnumerate}
+\item Use this page, the sample, and the documentation for the org.\+sleuthkit.\+autopsy.\+ingest.\+File\+Ingest\+Module interface to implement the start\+Up(), and process(), and shut\+Down() methods.
+\begin{DoxyItemize}
+\item org.\+sleuthkit.\+autopsy.\+ingest.\+File\+Ingest\+Module.\+start\+Up() should have any code that you need to initialize your module. If you have any startup errors, be sure to throw a Ingest\+Module\+Exception exception to stop ingest.
+\item org.\+sleuthkit.\+autopsy.\+ingest.\+File\+Ingest\+Module.\+process() is where all of the work of a file ingest module is done. It will be called repeatedly between start\+Up() and shut\+Down(), once for each file Autopsy feeds into the pipeline of which the module instance is a part. The process() method receives a reference to a org.\+sleuthkit.\+datamodel.\+Abstract\+File object.
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{mod_ingest_page_ingest_modules_implementing_next}{}\subsection{Next Steps}\label{mod_ingest_page_ingest_modules_implementing_next}
+This section gave you the outline of making the module. Now we\textquotesingle{}ll cover what you can do in the module. The following sections often make use of the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services class, which provides many convenient services to make module writing easier. Also make sure you refer to \hyperlink{platform_page_mod_dev_other_services}{Framework Services and Utilities} if you are looking for a feature.\hypertarget{mod_ingest_page_ingest_modules_making_results}{}\section{Doing Something With Your Results}\label{mod_ingest_page_ingest_modules_making_results}
+The previous section outlined how to make the basic module and how to get access to the data. The next step is to then do some fancy analysis and present the results to the user.
+
+The first question that you must answer is what type of data do you want the user to see. There are two options\+:
+
+
+\begin{DoxyEnumerate}
+\item Data that can be accessed from the tree on the left-\/hand side of the UI and can be displayed in a table. To do this, you will make blackboard artifacts.
+\item Data that is in a big text file or some other report that the user can review. To do this, you will use the Case.\+add\+Report() method to make the output available in the directory tree.
+\end{DoxyEnumerate}\hypertarget{mod_ingest_page_ingest_modules_making_results_bb}{}\subsection{Posting Results to the Blackboard}\label{mod_ingest_page_ingest_modules_making_results_bb}
+The blackboard is used to store results so that they are displayed in the results tree. See \hyperlink{platform_page_platform_blackboard}{The Blackboard} for details on posting results to it. You use the blackboard when you have specific items to show the user. if you want to just shown them a big report from another library or tool, see \hyperlink{mod_report_page}{Developing Report Modules}. The blackboard defines artifacts for specific data types (such as web bookmarks). You can use one of the standard artifact types or create your own.
+
+When modules add data to the blackboard, they should notify listeners of the new data by invoking the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services.\+fire\+Module\+Data\+Event() method. Do so as soon as you have added an artifact to the blackboard. This allows other modules (and the main UI) to know when to query the blackboard for the latest data. However, if you are writing a large number of blackboard artifacts in a loop, it is better to invoke org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services.\+fire\+Module\+Data\+Event() only once after the bulk write, so as not to flood the system with events.
+
+Further, when modules create artifacts, they should be indexed for keyword search, using the method Blackboard.\+index\+Artifact(\+Blackboard\+Artifact artifact). This can be done in the following way\+:
+
+
+\begin{DoxyCode}
+Blackboard blackboard = Case.getCurrentCase().getServices().getBlackboard();
+\textcolor{keywordflow}{try} \{
+    blackboard.indexArtifact(artifact); \textcolor{comment}{//Your artifact as the parameter.}
+\}
+\textcolor{keywordflow}{catch} (BlackboardException ex) \{
+    \textcolor{comment}{//YOUR EXCEPTION BEHAVIOR HERE.}
+\}
+\end{DoxyCode}
+\hypertarget{mod_ingest_page_ingest_modules_making_results_report}{}\subsection{Making a Report}\label{mod_ingest_page_ingest_modules_making_results_report}
+If your module makes a text or H\+T\+ML file (or some other report format) that has some complex structure (either because you prefer to write output that way or your module is simply a wrapper around another tool), then you can simply call the output a report and then it will be shown in the UI in the reports area. You can do this by calling the org.\+sleuthkit.\+autopsy.\+casemodule.\+Case.\+add\+Report() method.\hypertarget{mod_ingest_page_ingest_modules_users}{}\section{Getting User Attention}\label{mod_ingest_page_ingest_modules_users}
+The ingest modules are running in the background and the user will not notice everything you put in the tree.\hypertarget{mod_ingest_page_ingest_modules_making_results_inbox}{}\subsection{Posting Results to the Message Inbox}\label{mod_ingest_page_ingest_modules_making_results_inbox}
+Modules should post messages to the inbox when interesting data is found. Of course, such data should also be posted to the blackboard as described above. The idea behind the ingest messages is that they are presented in chronological order so that users can see what was found while they were focusing on something else.
+
+Inbox messages should only be sent if the result has a low false positive rate and will likely be relevant. For example, the core Autopsy hash lookup module sends messages if known bad (notable) files are found, but not if known good (N\+S\+RL) files are found. This module also provides a global setting (using its global settings panel) that allows a user to turn these messages on or off.
+
+Messages are created using the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Message class and posted to the inbox using the org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services.\+post\+Message() method.\hypertarget{mod_ingest_page_ingest_modules_making_results_error}{}\subsection{Reporting Errors}\label{mod_ingest_page_ingest_modules_making_results_error}
+When an error occurs, you should write an error message to the Autopsy logs, using a logger obtained from org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services.\+get\+Logger().
+
+You could also send an error message to the ingest inbox. The downside of this is that the ingest inbox was not really designed for this purpose and it is easy for the user to miss these messages. Therefore, it is preferable to post a pop-\/up message that is displayed in the lower right hand corner of the main window by calling org.\+sleuthkit.\+autopsy.\+coreutils.\+Message\+Notify\+Util.\+Notify.\+show().\hypertarget{mod_ingest_page_ingest_modules_making_options}{}\section{User Options and Configuration}\label{mod_ingest_page_ingest_modules_making_options}
+Autopsy allows a module to provide two levels of configuration\+:
+\begin{DoxyItemize}
+\item When an ingest job is being configured, the user can choose settings that are unique to that ingest job / pipeline. For example, to enable a certain hash set.
+\item The user can configure global settings that apply to all jobs. For example, to add or delete a hash set.
+\end{DoxyItemize}
+
+To provide either or both of these options to the user, we need to implement methods defined in the Ingest\+Module\+Factory interface. You can either add them to your class that extends the Ingest\+Module\+Factory\+Adapter or decide to simply implement the interface.
+
+You can also refer to sample implementations of the interfaces and abstract classes in the org.\+sleuthkit.\+autopsy.\+examples package, although you should note that the samples do not do anything particularly useful.\hypertarget{mod_ingest_page_ingest_modules_making_options_ingest}{}\subsection{Ingest Job Options}\label{mod_ingest_page_ingest_modules_making_options_ingest}
+Autopsy allows you to provide a graphical panel that will be displayed when the user decides to enable the ingest module. This panel is supposed to be for settings that the user may turn on or off for different data sources.
+
+To provide options for each ingest job\+:
+\begin{DoxyItemize}
+\item Update org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory.\+has\+Ingest\+Job\+Settings\+Panel() in your factory class to return true.
+\item Update org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory.\+get\+Ingest\+Job\+Settings\+Panel() in your factory class to return a Ingest\+Module\+Ingest\+Job\+Settings\+Panel that displays the needed configuration options. The org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Ingest\+Job\+Settings\+Panel.\+get\+Settings() method should return an instance of a org.\+sleutkit.\+autopsy.\+ingest.\+Ingest\+Module\+Ingest\+Job\+Settings object based on the user-\/specified settings (see next bullet).
+\item Create a class that implements org.\+sleutkit.\+autopsy.\+ingest.\+Ingest\+Module\+Ingest\+Job\+Settings. Your Ingest\+Module\+Ingest\+Job\+Settings\+Panel should store settings in here. This class needs to be Serializable, so keep all data types simple or mark them as transient with some custom deserialization code. You should also set the serial\+Version\+U\+ID (see \href{http://stackoverflow.com/questions/285793/what-is-a-serialversionuid-and-why-should-i-use-it}{\tt http\+://stackoverflow.\+com/questions/285793/what-\/is-\/a-\/serialversionuid-\/and-\/why-\/should-\/i-\/use-\/it}).
+\item If you decide to store settings internal to the module (N\+OT R\+E\+C\+O\+M\+M\+E\+N\+D\+ED), the get\+Settings() method can return an instance of No\+Ingest\+Module\+Ingest\+Job\+Settings.
+\item Your instance of Ingest\+Module\+Ingest\+Job\+Settings will be saved and passed to your panel the next time so that you can pre-\/populate it accordingly.
+\end{DoxyItemize}
+
+Your panel should create the Ingest\+Module\+Ingest\+Job\+Settings class to store the settings and that will be passed back into your factory with each call to create\+Data\+Source\+Ingest\+Module() or create\+File\+Ingest\+Module(). The way that we have implemented this in Autopsy modules is that the factory casts the Ingest\+Module\+I\+Ngest\+Job\+Settings object to the module-\/specific implementation and then passes it into the constructor of the ingest module. The ingest module can then call whatever getter methods that were defined based on the panel settings.
+
+You can also implement the get\+Default\+Ingest\+Job\+Settings() method to return an instance of your Ingest\+Module\+Ingest\+Job\+Settings class with default settings. Autopsy will call this when the module has not been run before.
+
+N\+O\+TE\+: We recommend storing simple data in the Ingest\+Module\+Ingest\+Job\+Settings-\/based class. In the case of our hash lookup module, we store the string names of the hash databases to do lookups in. We then get the hash database handles in the call to start\+Up() using the global module settings.
+
+N\+O\+TE\+: The main benefit of using the Ingest\+Module\+Ingest\+Job\+Settings-\/based class to store settings (versus some static variables in your package) are\+:
+\begin{DoxyItemize}
+\item When multiple jobs are running at the same time, each can have their own settings.
+\item Autopsy persists them so that the last used settings get passed into the call to get\+Ingest\+Job\+Settings\+Panel() and you don\textquotesingle{}t need to save them yoursevles to provide the user the benefit of re-\/using the last settings.
+\end{DoxyItemize}\hypertarget{mod_ingest_page_ingest_modules_making_options_global}{}\subsection{Global Options}\label{mod_ingest_page_ingest_modules_making_options_global}
+Global options are those that are not specific to a data source or ingest pipeline. They are big-\/picture settings.
+
+To provide global options\+:
+\begin{DoxyItemize}
+\item Update org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory.\+has\+Global\+Settings\+Panel() in your factory class to return true.
+\item Update org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Factory.\+get\+Global\+Settings\+Panel() to return a org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Module\+Global\+Setttings\+Panel with widgets to support the global settings.
+\item You are responsible for persisting global settings and may use the module settings methods provided by org.\+sleuthkit.\+autopsy.\+ingest.\+Ingest\+Services for saving simple properties, or the facilities of classes such as org.\+sleuthkit.\+autopsy.\+coreutils.\+Platform\+Util and org.\+sleuthkit.\+autopsy.\+coreutils.\+X\+M\+L\+Util for more sophisticated approaches.
+\item You are responsible for providing a way for the ingest module to obtain the global settings. For example, the Autopsy core hash look up module comes with a singleton hash databases manager. Users import and create hash databases using the global settings panel. Then they select which hash databases to use for a particular job using the ingest job settings panel. When a module instance runs, it gets the relevant databases from the hash databases manager.
+\item You are responsible for having the ingest job options panel update itself if the global settings change (i.\+e. if a new item is added that must be listed on the ingest panel).
+\end{DoxyItemize}\hypertarget{mod_ingest_page_ingest_modules_api_migration}{}\section{Migrating 3.\+0 Java Ingest Modules to the 3.\+1 and newer A\+PI}\label{mod_ingest_page_ingest_modules_api_migration}
+This section is a guide for module developers who wrote modules for the 3.\+0 A\+PI. These A\+PI changes occurred so that we could make parallel pipelines of the file-\/level ingest modules. This section assumes you\textquotesingle{}ve read the above description of the new A\+PI.
+
+There are three big changes to make in your module\+:
+\begin{DoxyEnumerate}
+\item Modules are no longer singletons. Autopsy will make one of your factory classes and many instances of the ingest modules. As part of the migration to the new classes, your singleton infrastructure will disappear.
+\item You\textquotesingle{}ll need to move the U\+I/\+Configuration methods into the factory class and the ingest module methods into their own class. You\textquotesingle{}ll also need to update the A\+P\+Is for the methods a bit.
+\item You\textquotesingle{}ll need to review your ingest module code for thread safety if you are using any static member variables.
+\end{DoxyEnumerate}
+
+We recommend that you\+:
+\begin{DoxyEnumerate}
+\item Create a new factory class and move over the UI panels, configuration code, and standard methods (name, description, version, etc.). You\textquotesingle{}ll probably want the name in the ingest module code, so you should also store the name in a package-\/wide static member variable.
+\item Get the factory to compile and work. You can do basic testing by running Autopsy and verifying that you see your module and its panels.
+\item Change your old ingest module to implement the new interface and adjust it (see the name changes below). Then update the factory to create it.
+\item Review the ingest module code for thread safety (especially look for static member variables).
+\end{DoxyEnumerate}
+
+The following table provides a mapping of the methods of the old abstract classes to the new interfaces\+:
+
+\tabulinesep=1mm
+\begin{longtabu} spread 0pt [c]{*2{|X[-1]}|}
+\hline
+\rowcolor{\tableheadbgcolor}{\bf Old method }&{\bf New Method  }\\\cline{1-2}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\rowcolor{\tableheadbgcolor}{\bf Old method }&{\bf New Method  }\\\cline{1-2}
+\endhead
+Ingest\+Module\+Abstract.\+get\+Type() &N/A \\\cline{1-2}
+Ingest\+Module\+Abstract.\+init() &Ingest\+Module.\+start\+Up() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+get\+Name() &Ingest\+Module\+Factory.\+get\+Module\+Name() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+get\+Description() &Ingest\+Module\+Factory.\+get\+Module\+Description() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+get\+Version() &Ingest\+Module\+Factory.\+get\+Module\+Version() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+has\+Background\+Jobs\+Running &N/A \\\cline{1-2}
+Ingest\+Module\+Abstract.\+complete() &Ingest\+Module.\+shut\+Down() for file ingest modules; data source ingest modules should do anything they did in complete() at the end of the process() method \\\cline{1-2}
+Ingest\+Module\+Abstract.\+has\+Advanced\+Configuration() &Ingest\+Module\+Factory.\+has\+Global\+Settings\+Panel() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+get\+Advanced\+Configuration() &Ingest\+Module\+Factory.\+get\+Global\+Settings\+Panel() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+save\+Advanced\+Configuration() &Ingest\+Module\+Global\+Setttings\+Panel.\+save\+Settings() \\\cline{1-2}
+N/A &Ingest\+Module\+Factory.\+get\+Default\+Ingest\+Job\+Settings() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+has\+Simple\+Configuration() &Ingest\+Module\+Factory.\+has\+Ingest\+Job\+Settings\+Panel() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+get\+Simple\+Configuration() &Ingest\+Module\+Factory.\+get\+Ingest\+Job\+Settings\+Panel() \\\cline{1-2}
+Ingest\+Module\+Abstract.\+save\+Simple\+Configuration() &N/A \\\cline{1-2}
+N/A &Ingest\+Module\+Ingest\+Job\+Settings\+Panel.\+get\+Settings() \\\cline{1-2}
+N/A &Ingest\+Module\+Factory.\+is\+Data\+Source\+Ingest\+Module\+Factory() \\\cline{1-2}
+N/A &Ingest\+Module\+Factory.\+create\+Data\+Source\+Ingest\+Module() \\\cline{1-2}
+N/A &Ingest\+Module\+Factory.\+is\+File\+Ingest\+Module\+Factory() \\\cline{1-2}
+N/A &Ingest\+Module\+Factory.\+create\+File\+Ingest\+Module() \\\cline{1-2}
+\end{longtabu}
+Notes\+:
+\begin{DoxyItemize}
+\item Ingest\+Module\+Factory.\+get\+Module\+Name() should delegate to a static class method that can also be called by ingest module instances.
+\item The Ingest\+Job\+Context object passed to start\+Up() can be queried to determine whether the ingest job completed or was cancelled.
+\item The global settings panel (formerly \char`\"{}advanced\char`\"{}) for a module must implement Ingest\+Module\+Global\+Settings\+Panel which extends J\+Panel. Global settings are those that affect all modules, regardless of ingest job and pipeline.
+\item The per ingest job settings panel (formerly \char`\"{}simple\char`\"{}) for a module must implement Ingest\+Module\+Ingest\+Job\+Settings\+Panel which extends J\+Panel. It takes the settings for the current context as a serializable Ingest\+Module\+Ingest\+Job\+Settings object and its get\+Settings() methods returns a serializable Ingest\+Module\+Ingest\+Job\+Settings object. The Ingest\+Module\+Ingest\+Job\+Settings\+Panel.\+get\+Settings() method replaces the save\+Simple\+Settings() method, except that now Autopsy persists the settings in a context-\/sensitive fashion.
+\item The Ingest\+Module\+Factory creation methods replace the get\+Instance() methods of the former singletons and receive a Ingest\+Module\+Ingest\+Job\+Settings object that should be passed to the constructors of the module instances the factory creates. 
+\end{DoxyItemize}

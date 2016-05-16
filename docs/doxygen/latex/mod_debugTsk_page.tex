@@ -1,0 +1,11 @@
+If you find that you need to debug some of the C/\+C++ code from The Sleuth Kit (T\+SK), then here are the steps to follow\+:
+
+
+\begin{DoxyEnumerate}
+\item Ensure that you have the Debug version of the T\+SK J\+NI dll built (both 32-\/bit and 64-\/bit to be safe). This assumes you built T\+SK from source and are not simply using the developer platform. You may have to build the libtsk\+\_\+jni twice because sommetimes it complains about not being able to find a .map file.
+\item Run the \textquotesingle{}dist-\/debug\textquotesingle{} target for the T\+SK Data\+Model project. This copies the debug versions of the dll into the J\+AR file. If you run the \textquotesingle{}dist\textquotesingle{} target, then you will get Release versions of the dll and you won\textquotesingle{}t have the needed symbols for debugging.
+\item Build the Autopsy suite so that it copies the new J\+AR file with the debug dlls.
+\item Set your breakpoints in the T\+SK source.
+\item Run Autopsy in the debugger.
+\item In V\+C++, do Debug-\/$>$Attach to process... If you don\textquotesingle{}t see this menu item, set Tools-\/$>$Settings-\/$>$Expert Settings. There is also a Tools-\/$>$Attach to process..(Ctrl+\+Alt+P). Attach to nbexex64,exe (netbeasn64.\+exe is the I\+DE). 
+\end{DoxyEnumerate}
