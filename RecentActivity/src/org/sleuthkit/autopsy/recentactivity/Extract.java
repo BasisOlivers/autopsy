@@ -103,14 +103,14 @@ abstract class Extract {
      *
      * @param bbart Blackboard artifact to be indexed
      */
-    @Messages({"Extract.indexError.message=Failed to index artifact for keyword search."})
+    @Messages({"Extract.indexError.message=Failed to index recent activity artifact for keyword search."})
     void indexArtifact(BlackboardArtifact bbart) {
         Blackboard blackboard = Case.getCurrentCase().getServices().getBlackboard();
         try {
             // index the artifact for keyword search
             blackboard.indexArtifact(bbart);
         } catch (Blackboard.BlackboardException ex) {
-            logger.log(Level.SEVERE, "Unable to index blackboard artifact " + bbart.getDisplayName(), ex); //NON-NLS
+            logger.log(Level.SEVERE, "Unable to index blackboard artifact " + bbart.getArtifactID(), ex); //NON-NLS
             MessageNotifyUtil.Notify.error(Bundle.Extract_indexError_message(), bbart.getDisplayName());
         }
     }
