@@ -166,8 +166,6 @@ class DirectoryTreeFilterNode extends FilterNode {
     private static List<Action> getDetailActions(Content c) {
         List<Action> actions = new ArrayList<>();
 
-        actions.addAll(ExplorerNodeActionVisitor.getActions(c));
-
         return actions;
     }
 
