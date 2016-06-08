@@ -19,10 +19,12 @@
 package org.sleuthkit.autopsy.imagegallery.actions;
 
 import java.awt.Component;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle.Messages;
@@ -37,15 +39,18 @@ import org.sleuthkit.autopsy.imagegallery.ImageGalleryTopComponent;
 
 @ActionID(category = "Tools",
         id = "org.sleuthkit.autopsy.imagegallery.OpenAction")
-@ActionReference(path = "Menu/Tools" /* , position = 333 */)
+@ActionReferences(value = {
+    @ActionReference(path = "Menu/Tools" /* , position = 333 */),
+    @ActionReference(path = "Toolbars/Case", position = 103)
+})
 @ActionRegistration( //        iconBase = "org/sleuthkit/autopsy/imagegallery/images/lightbulb.png",
         lazy = false,
         displayName = "#CTL_OpenAction")
 @Messages({"CTL_OpenAction=View Images/Videos",
-        "OpenAction.stale.confDlg.msg=The image / video database may be out of date. " +
-                "Do you want to update and listen for further ingest results?\n" +
-                "Choosing 'yes' will update the database and enable listening to future ingests.",
-        "OpenAction.stale.confDlg.title=Image Gallery"})
+    "OpenAction.stale.confDlg.msg=The image / video database may be out of date. "
+    + "Do you want to update and listen for further ingest results?\n"
+    + "Choosing 'yes' will update the database and enable listening to future ingests.",
+    "OpenAction.stale.confDlg.title=Image Gallery"})
 public final class OpenAction extends CallableSystemAction {
 
     private static final String VIEW_IMAGES_VIDEOS = Bundle.CTL_OpenAction();
@@ -63,12 +68,16 @@ public final class OpenAction extends CallableSystemAction {
         return Case.isCaseOpen() && fxInited && Case.getCurrentCase().hasData();
     }
 
-    /** Returns the toolbar component of this action
+    /**
+     * Returns the toolbar component of this action
      *
-     * @return component the toolbar button */
+     * @return component the toolbar button
+     */
     @Override
     public Component getToolbarPresenter() {
         JButton toolbarButton = new JButton(this);
+        ImageIcon icon = new ImageIcon("ImageGallery/src/org/sleuthkit/autopsy/imagegallery/images/btn_icon_image_gallery_26.png"); //NON-NLS
+        toolbarButton.setIcon(icon);
         toolbarButton.setText(VIEW_IMAGES_VIDEOS);
         toolbarButton.addActionListener(this);
 
